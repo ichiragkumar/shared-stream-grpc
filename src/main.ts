@@ -3,7 +3,8 @@ import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { DatabaseService } from './config/database.config';
-
+import  { config } from 'dotenv';
+config();
 async function bootstrap() {
   try {
     await DatabaseService.connect();
@@ -22,15 +23,18 @@ async function bootstrap() {
     options: {
       package: 'coupon',
       protoPath: join(__dirname, 'proto/coupon_stream.proto'),
-      url: '0.0.0.0:4005',
+      url: `${process.env.GRPC_HOST}:${process.env.GRPC_PORT}`,
     },
   });
 
-  // Start both HTTP and gRPC services
+
   await app.startAllMicroservices();
-  await app.listen(3000);
-  
-  console.log(`HTTP server running on http://localhost:3000`);
-  console.log(`gRPC server running on 0.0.0.0:4005`);
+  await app.listen(Number(process.env.PORT));
+
+
+
+  console.log(`HTTP server running on http://localhost:${process.env.PORT}`);
+  console.log(`gRPC server running on ${process.env.GRPC_HOST}:${process.env.GRPC_PORT}`);
+
 }
 bootstrap();
