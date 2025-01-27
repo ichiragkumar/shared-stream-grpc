@@ -19,7 +19,6 @@ export class CouponGrpcController {
 
   @GrpcMethod('CouponStreamService')
   StreamCouponIssues(data: StatusFilter): Observable<CouponIssue> {
-    console.log('StreamCouponIssues called with data:', data);
     return this.couponService.streamCouponIssues(data);
   }
 
