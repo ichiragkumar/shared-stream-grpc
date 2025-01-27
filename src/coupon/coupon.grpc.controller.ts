@@ -17,7 +17,7 @@ import {
 export class CouponGrpcController {
   constructor(private readonly couponService: CouponService) {}
 
-  @GrpcMethod('CouponStreamService')
+  @GrpcMethod('CouponStreamService', 'StreamCouponIssues')
   StreamCouponIssues(data: StatusFilter): Observable<CouponIssue> {
     return this.couponService.streamCouponIssues(data);
   }
@@ -27,7 +27,7 @@ export class CouponGrpcController {
     return this.couponService.streamExpiredCoupons(data);
   }
 
-  @GrpcMethod('CouponStreamService')
+  @GrpcMethod('CouponStreamService', 'StreamMoreCouponRequests')
   StreamMoreCouponRequests(data: UserFilter): Observable<MoreCouponRequest> {
     return this.couponService.streamMoreCouponRequests(data);
   }
