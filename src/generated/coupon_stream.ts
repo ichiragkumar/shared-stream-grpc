@@ -21,18 +21,6 @@ export interface CouponIssue {
   updatedAt: number;
 }
 
-export interface ExpiredCouponFilter {
-  userId: string;
-  statuses: string[];
-}
-
-export interface ExpiredCouponIssue {
-  id: string;
-  expireAt: number;
-  code: string;
-  status: string;
-}
-
 export interface UserFilter {
   userId: string;
 }
@@ -80,8 +68,6 @@ export const COUPON_PACKAGE_NAME = "coupon";
 export interface CouponStreamServiceClient {
   streamCouponIssues(request: StatusFilter): Observable<CouponIssue>;
 
-  streamExpiredCoupons(request: ExpiredCouponFilter): Observable<ExpiredCouponIssue>;
-
   streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
 
   getCouponsByStatus(request: CouponStatusFilter): Observable<UserCoupon>;
@@ -91,8 +77,6 @@ export interface CouponStreamServiceClient {
 
 export interface CouponStreamServiceController {
   streamCouponIssues(request: StatusFilter): Observable<CouponIssue>;
-
-  streamExpiredCoupons(request: ExpiredCouponFilter): Observable<ExpiredCouponIssue>;
 
   streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
 
@@ -105,7 +89,6 @@ export function CouponStreamServiceControllerMethods() {
   return function (constructor: Function) {
     const grpcMethods: string[] = [
       "streamCouponIssues",
-      "streamExpiredCoupons",
       "streamMoreCouponRequests",
       "getCouponsByStatus",
       "activeCouponIssuesWithBusinessesStream",

@@ -59,7 +59,7 @@ export class BusinessService {
   }
 
   async getBusinessesWithIds(ids: string[], languageCode: string = 'en', brightness: string = 'light') {
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    if (!ids || ids.length === 0) {
       throw new BadRequestException("'ids' must be a non-empty array. : getBusinessesWithIds");
     }
 
@@ -88,6 +88,7 @@ export class BusinessService {
         sponsorshipType: business.sponsorshipType || null,
       }));
     } catch (error) {
+      console.log("i am her",error)
       throw new Error('Internal Server Error :getBusinessesWithIds');
     }
   }

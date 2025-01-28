@@ -7,7 +7,7 @@ service CouponStreamService {
   rpc StreamCouponIssues(StatusFilter) returns (stream CouponIssue);
 
 
-  rpc StreamExpiredCoupons(ExpiredCouponFilter) returns (stream ExpiredCouponIssue);
+
 
   rpc StreamMoreCouponRequests(UserFilter) returns (stream MoreCouponRequest);
 
@@ -31,20 +31,9 @@ message CouponIssue {
 }
 
 
-message ExpiredCouponFilter {
-  string userId = 1;
-  repeated string statuses = 2; 
 
 
-}
 
-
-message ExpiredCouponIssue {
-  string id = 1;            
-  int64 expireAt = 2;
-  string code = 3;          
-  string status = 4;
-}
 
 message UserFilter {
   string userId = 1;

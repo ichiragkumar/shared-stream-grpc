@@ -63,9 +63,3 @@
 
   	
 
-
-9) activeCouponIssuesWithBusinesseStream
-    input - No
-    Collection couponIssues,businesses
-    where status in ['active', 'suspended', 'ended']
-    	 and couponIssues.businessId=businesses.id

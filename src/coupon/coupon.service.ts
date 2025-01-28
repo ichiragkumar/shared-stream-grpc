@@ -3,8 +3,6 @@ import { Observable } from 'rxjs';
 import { 
   StatusFilter, 
   CouponIssue, 
-  ExpiredCouponFilter, 
-  ExpiredCouponIssue,
   UserFilter,
   MoreCouponRequest,
   CouponStatusFilter,
@@ -75,11 +73,7 @@ export class CouponService {
     });
     }
 
-  streamExpiredCoupons(data: ExpiredCouponFilter): Observable<ExpiredCouponIssue> {
-    return new Observable(subscriber => {
-      // Add your streaming implementation
-    });
-  }
+
 
   streamMoreCouponRequests(data: UserFilter): Observable<MoreCouponRequest> {
     return new Observable<MoreCouponRequest>( subscriber=> {
@@ -143,7 +137,7 @@ export class CouponService {
   }
 
 
-streamActiveCouponIssuesWithBusiness(): Observable<CouponIssueWithBusiness> {
+  streamActiveCouponIssuesWithBusiness(): Observable<CouponIssueWithBusiness> {
     return new Observable(subscriber => {
       const changeStream = this.db.collection('couponIssues').watch(
         [
