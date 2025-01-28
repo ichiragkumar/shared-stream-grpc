@@ -10,7 +10,8 @@ import {
   CouponStatusFilter,
   UserCoupon,
   CouponIssueWithBusiness,
-  EmptyRequest
+  EmptyRequest,
+  ActiveBusinessesStreamResponse
 } from "../generated/coupon_stream";
 
 @Controller()
@@ -37,6 +38,11 @@ export class CouponGrpcController {
   @GrpcMethod('CouponStreamService', 'ActiveCouponIssuesWithBusinessesStream')
   ActiveCouponIssuesWithBusinessesStream(): Observable<CouponIssueWithBusiness> {
   return this.couponService.streamActiveCouponIssuesWithBusiness();
+  }
+
+  @GrpcMethod('CouponStreamService', 'StreamActiveBusinessesStream')
+  streamActiveBusinessesStream(): Observable<ActiveBusinessesStreamResponse> {
+    return this.couponService.streamActiveBusinessesWithContractTypes();
   }
 
 }

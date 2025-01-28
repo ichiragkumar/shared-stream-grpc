@@ -63,10 +63,22 @@ export interface CouponIssueWithBusiness {
   status: string;
 }
 
+export interface ActiveBusinessesStreamResponse {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  categories: string[];
+  businessId: string;
+  contractType: string;
+}
+
 export const COUPON_PACKAGE_NAME = "coupon";
 
 export interface CouponStreamServiceClient {
   streamCouponIssues(request: StatusFilter): Observable<CouponIssue>;
+
+  streamActiveBusinessesStream(request: EmptyRequest): Observable<ActiveBusinessesStreamResponse>;
 
   streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
 
@@ -77,6 +89,8 @@ export interface CouponStreamServiceClient {
 
 export interface CouponStreamServiceController {
   streamCouponIssues(request: StatusFilter): Observable<CouponIssue>;
+
+  streamActiveBusinessesStream(request: EmptyRequest): Observable<ActiveBusinessesStreamResponse>;
 
   streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
 
@@ -89,6 +103,7 @@ export function CouponStreamServiceControllerMethods() {
   return function (constructor: Function) {
     const grpcMethods: string[] = [
       "streamCouponIssues",
+      "streamActiveBusinessesStream",
       "streamMoreCouponRequests",
       "getCouponsByStatus",
       "activeCouponIssuesWithBusinessesStream",
