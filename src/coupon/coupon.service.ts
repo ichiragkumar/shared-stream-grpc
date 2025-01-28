@@ -8,7 +8,8 @@ import {
   CouponStatusFilter,
   UserCoupon,
   CouponIssueWithBusiness,
-  ActiveBusinessesStreamResponse
+  ActiveBusinessesStreamResponse,
+  ActiveCouponStreamResponse
 } from "../generated/coupon_stream"
 import { Db, Filter, ObjectId } from 'mongodb';
 import { DatabaseService } from 'src/config/database.config';
@@ -73,8 +74,6 @@ export class CouponService {
       };
     });
     }
-
-
 
   streamMoreCouponRequests(data: UserFilter): Observable<MoreCouponRequest> {
     return new Observable<MoreCouponRequest>( subscriber=> {
@@ -236,7 +235,71 @@ export class CouponService {
       };
     });
   }
-  
+
+
+  streamActiveCouponsStream(data: UserFilter): Observable<ActiveCouponStreamResponse> {
+    return new Observable(subscriber => {
+        if (!data || !data.userId) {
+            subscriber.error(new Error('Invalid request: statuses are required.'));
+            return;
+        }
+
+      const { userId } = data;
+      const userExists = this.db.collection('userCoupons').findOne({ userId });
+      if (!userExists) {
+        subscriber.error(new Error(`No coupon requests found for userId: ${userId}`));
+        return;
+      }
+
+      const changeStream = this.db.collection('userCoupons').watch(
+        [
+          {
+            $match: {
+              'fullDocument.status': { $in: ['active', 'suspended', 'ended'] },
+              'fullDocument.userId': userId
+            },
+          },
+        ],
+        { fullDocument: 'updateLookup' }
+      );
+
+      changeStream.on('change', async (change: any) => {
+        if (change.fullDocument) {
+          if (!change.fullDocument._id || !change.fullDocument.userId) {
+            subscriber.error(new Error('Invalid document data received'));
+            return;
+          }
+
+          const couponIssue: ActiveCouponStreamResponse = {
+            _id: change.fullDocument._id,
+            redemptionInfo: change.fullDocument.redemptionInfo || null,
+            code: change.fullDocument.code,
+            businessId: change.fullDocument.businessId,
+            couponIssueId: change.fullDocument._id.toString(),
+            redeemedBySelfActivation: change.fullDocument.redeemedBySelfActivation,
+            purchasePrice: change.fullDocument.purchasePrice,            
+            purchaseCurrency: change.fullDocument.purchaseCurrency,
+            userId: change.fullDocument.userId,
+            status: change.fullDocument.status,
+            expireAt: change.fullDocument.expireAt,
+            createdAt: change.fullDocument.createdAt,
+            purchasedAt: change.fullDocument.purchasedAt,
+          };          
+          subscriber.next(couponIssue);
+        }
+      });
+
+      changeStream.on('error', (error: any) => {
+        console.error('Change stream error:', error);
+        subscriber.error(error);
+      });
+
+      return () => {
+        console.log('Cleaning up change stream');
+        changeStream.close();
+      };
+    });
+  }
   
   
   

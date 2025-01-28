@@ -11,7 +11,6 @@ import { Observable } from "rxjs";
 export const protobufPackage = "coupon";
 
 export interface StatusFilter {
-  /** List of statuses to filter, e.g., 'active', 'suspended', 'ended' */
   statuses: string[];
 }
 
@@ -73,10 +72,38 @@ export interface ActiveBusinessesStreamResponse {
   contractType: string;
 }
 
+export interface ActiveCouponStreamResponse {
+  _id: string;
+  redemptionInfo: RedemptionInfo | undefined;
+  code: string;
+  businessId: string;
+  couponIssueId: string;
+  redeemedBySelfActivation: boolean;
+  purchasePrice: number;
+  purchaseCurrency: string;
+  userId: string;
+  status: string;
+  expireAt: Timestamp | undefined;
+  createdAt: Timestamp | undefined;
+  purchasedAt: Timestamp | undefined;
+}
+
+export interface RedemptionInfo {
+  redeemedByBusinessManagerId: string;
+  methodOfRedemption: string;
+}
+
+export interface Timestamp {
+  seconds: number;
+  nanos: number;
+}
+
 export const COUPON_PACKAGE_NAME = "coupon";
 
 export interface CouponStreamServiceClient {
   streamCouponIssues(request: StatusFilter): Observable<CouponIssue>;
+
+  streamActiveCoupons(request: UserFilter): Observable<ActiveCouponStreamResponse>;
 
   streamActiveBusinessesStream(request: EmptyRequest): Observable<ActiveBusinessesStreamResponse>;
 
@@ -89,6 +116,8 @@ export interface CouponStreamServiceClient {
 
 export interface CouponStreamServiceController {
   streamCouponIssues(request: StatusFilter): Observable<CouponIssue>;
+
+  streamActiveCoupons(request: UserFilter): Observable<ActiveCouponStreamResponse>;
 
   streamActiveBusinessesStream(request: EmptyRequest): Observable<ActiveBusinessesStreamResponse>;
 
@@ -103,6 +132,7 @@ export function CouponStreamServiceControllerMethods() {
   return function (constructor: Function) {
     const grpcMethods: string[] = [
       "streamCouponIssues",
+      "streamActiveCoupons",
       "streamActiveBusinessesStream",
       "streamMoreCouponRequests",
       "getCouponsByStatus",

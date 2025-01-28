@@ -6,6 +6,8 @@ service CouponStreamService {
 
   rpc StreamCouponIssues(StatusFilter) returns (stream CouponIssue);
 
+  rpc StreamActiveCoupons(UserFilter) returns (stream ActiveCouponStreamResponse);
+
   rpc StreamActiveBusinessesStream(EmptyRequest) returns (stream ActiveBusinessesStreamResponse);
 
   rpc StreamMoreCouponRequests(UserFilter) returns (stream MoreCouponRequest);
@@ -89,4 +91,32 @@ message ActiveBusinessesStreamResponse {
   repeated string categories = 5;
   string   businessId = 6;
   string   contractType = 7;
+}
+
+
+message ActiveCouponStreamResponse {
+  string id = 1;
+  RedemptionInfo redemptionInfo = 2;
+  string code = 3;
+  string businessId = 4;
+  string couponIssueId = 5;
+  bool redeemedBySelfActivation = 6;
+  int32 purchasePrice = 7;
+  string purchaseCurrency = 8;
+  string userId = 9;
+  string status = 10;
+  Timestamp expireAt = 11;
+  Timestamp createdAt = 12;
+  Timestamp purchasedAt = 13;
+}
+
+
+message RedemptionInfo {
+  string redeemedByBusinessManagerId = 1;
+  string methodOfRedemption = 2;
+}
+
+message Timestamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
 }
