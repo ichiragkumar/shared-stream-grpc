@@ -15,9 +15,10 @@ service CouponStreamService {
   rpc ActiveCouponIssuesWithBusinessesStream(EmptyRequest) returns (stream CouponIssueWithBusiness);
 }
 
+//NOTE: List of statuses to filter, e.g., 'active', 'suspended', 'ended'
+
 
 message StatusFilter {
-  // List of statuses to filter, e.g., 'active', 'suspended', 'ended'
   repeated string statuses = 1; 
 }
 

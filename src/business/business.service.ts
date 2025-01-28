@@ -1,17 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { Db, Filter, Document } from 'mongodb';
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { Db, Filter } from 'mongodb';
 import { DatabaseService } from 'src/config/database.config';
+import { BusinessBranchDetailDocument, BusinessBranchDocument, BusinessDocument } from 'src/types';
 
-interface BusinessDocument extends Document {
-  _id: string;
-  description: Record<string, string>;
-  title: Record<string, string>;
-  logo: Record<string, Record<string, Record<string, string>>>;
-  categories?: string[];
-  suspended: boolean;
-  sponsorshipType?: string | null;
-  createdAt: Date;
-}
+
 
 @Injectable()
 export class BusinessService {
@@ -35,8 +27,11 @@ export class BusinessService {
         .findOne(filter);
 
       if (!business) {
-        throw new NotFoundException(`Business with id ${id} not found.`);
+          return {
+            message: `'No businesses found for the provided IDs.: getBusinessesWithIds'`,
+          };
       }
+  
 
       const localizedName = business.description?.[languageCode] || business.description?.['en'] || 'Unknown';
       const localizedTitle = business.title?.[languageCode] || business.title?.['en'] || 'Unknown';
@@ -53,7 +48,9 @@ export class BusinessService {
         sponsorshipType: business.sponsorshipType || null,
       };
     } catch (error) {
-      throw new Error('Internal Server Error :getBusinessesWithId');
+      return {
+        message: `Internal Server Error :getBusinessesWithId`,
+      }
 
     }
   }
@@ -73,8 +70,11 @@ export class BusinessService {
         .find(filter)
         .toArray();
 
+    
       if (!businesses.length) {
-        throw new NotFoundException('No businesses found for the provided IDs.: getBusinessesWithIds');
+        return {
+          message: `'No businesses found for the provided IDs.: getBusinessesWithIds'`,
+        };
       }
 
       return businesses.map(business => ({
@@ -88,8 +88,58 @@ export class BusinessService {
         sponsorshipType: business.sponsorshipType || null,
       }));
     } catch (error) {
-      console.log("i am her",error)
-      throw new Error('Internal Server Error :getBusinessesWithIds');
+      return {
+        message: `Internal Server Error :getBusinessesWithIds`,
+      }
     }
   }
+
+
+  async getBusinessBranchDetails(
+    businessId: string, 
+    businessBranchId: string, 
+    languageCode: string = 'en'
+  ) {
+    if (!businessId || !businessBranchId) {
+      throw new BadRequestException('Invalid request: businessId or businessBranchId is missing.');
+    }
+  
+    try {
+      const [businessBranchDetail, businessBranch] = await Promise.all([
+        this.db.collection<BusinessBranchDetailDocument>('businessBranchDetails').findOne({ _id: businessBranchId }),
+        this.db.collection<BusinessBranchDocument>('businessBranches').findOne({ businessId: businessId }),
+      ]);
+
+      if (!businessBranch || !businessBranchDetail) {
+        return {
+          message: `Business branch with id ${businessBranchId} or ${businessId} not found.`,
+          businessBranch: null,
+          businessBranchDetail: null
+        };
+      }
+  
+
+      const localizedTitle = businessBranchDetail.title?.[languageCode] || businessBranchDetail.title?.['en'] || 'Unknown';
+      const localizedShortAddress = businessBranch.shortAddress?.[languageCode] || businessBranch.shortAddress?.['en'] || 'Unknown';
+  
+
+      return {
+        id: businessBranchDetail._id,
+        title: localizedTitle,
+        shortAddress: localizedShortAddress,
+        address: businessBranchDetail.address?.[languageCode] || businessBranchDetail.address?.['en'],
+        phone: businessBranchDetail.phone,
+        images: businessBranchDetail.images,
+        location: businessBranch.location,
+        openingHours: businessBranch.openingHours,
+      };
+    } catch (error) {
+      return {
+        message: `Internal Server Error: getBusinessBranchDetails`,
+      }
+    }
+  }
+  
+  
+
 }
