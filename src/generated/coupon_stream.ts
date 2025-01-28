@@ -64,6 +64,17 @@ export interface UserCoupon {
   redeemedBySelfActivation: boolean;
 }
 
+export interface EmptyRequest {
+}
+
+export interface CouponIssueWithBusiness {
+  couponIssueId: string;
+  businessId: string;
+  couponName: string;
+  businessName: string;
+  status: string;
+}
+
 export const COUPON_PACKAGE_NAME = "coupon";
 
 export interface CouponStreamServiceClient {
@@ -74,6 +85,8 @@ export interface CouponStreamServiceClient {
   streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
 
   getCouponsByStatus(request: CouponStatusFilter): Observable<UserCoupon>;
+
+  activeCouponIssuesWithBusinessesStream(request: EmptyRequest): Observable<CouponIssueWithBusiness>;
 }
 
 export interface CouponStreamServiceController {
@@ -84,6 +97,8 @@ export interface CouponStreamServiceController {
   streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
 
   getCouponsByStatus(request: CouponStatusFilter): Observable<UserCoupon>;
+
+  activeCouponIssuesWithBusinessesStream(request: EmptyRequest): Observable<CouponIssueWithBusiness>;
 }
 
 export function CouponStreamServiceControllerMethods() {
@@ -93,6 +108,7 @@ export function CouponStreamServiceControllerMethods() {
       "streamExpiredCoupons",
       "streamMoreCouponRequests",
       "getCouponsByStatus",
+      "activeCouponIssuesWithBusinessesStream",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { 
   StatusFilter, 
@@ -8,10 +8,24 @@ import {
   UserFilter,
   MoreCouponRequest,
   CouponStatusFilter,
-  UserCoupon
+  UserCoupon,
+  CouponIssueWithBusiness
 } from "../generated/coupon_stream"
-import { Db } from 'mongodb';
+import { Db, Filter, ObjectId } from 'mongodb';
 import { DatabaseService } from 'src/config/database.config';
+
+interface ActiveCouponIssueWithBusiness {
+    id: string;
+    status: string;
+    businessId: string;
+    updatedAt: number;
+    businessName?: string;
+    businessLogo?: string;
+    couponIssueId: string;
+    couponName: string;
+}
+
+  
 
 @Injectable()
 export class CouponService {
@@ -127,4 +141,65 @@ export class CouponService {
       // Add your streaming implementation
     });
   }
+
+
+streamActiveCouponIssuesWithBusiness(): Observable<CouponIssueWithBusiness> {
+    return new Observable(subscriber => {
+      const changeStream = this.db.collection('couponIssues').watch(
+        [
+          { 
+            $match: {
+              'fullDocument.status': { $in: ['active', 'suspended', 'ended'] },
+            },
+          },
+        ],
+        { fullDocument: 'updateLookup' }
+      );
+  
+      changeStream.on('change', async (change: any) => {
+        if (change.fullDocument) {
+          const couponIssue: any = {
+            id: change.fullDocument._id.toString(),
+            status: change.fullDocument.status,
+            businessId: change.fullDocument.businessId,
+            updatedAt: Date.now(),
+            couponIssueId: change.fullDocument._id.toString(), 
+            couponName: change.fullDocument.couponName || 'Default Coupon Name',
+          };
+  
+          try {
+            const filter: Filter<any> = { _id:couponIssue.businessId } as Filter<any>;
+                  const business = await this.db
+                    .collection<any>('businesses')
+                    .findOne(filter);
+            if (!business) {
+                    throw new NotFoundException(`Business with id ${couponIssue.businessId} not found.`);
+            }
+  
+            if (business) {
+              couponIssue.businessName = business.title.en; 
+              couponIssue.businessLogo = business.logo.light.en;
+            }
+            subscriber.next(couponIssue);
+          } catch (error) {
+            subscriber.error(error);
+          }
+        }
+      });
+  
+      changeStream.on('error', (error: any) => {
+        console.error('Change stream error:', error);
+        subscriber.error(error);
+      });
+  
+      return () => {
+        console.log('Cleaning up change stream');
+        changeStream.close();
+      };
+    });
+  }
+  
+  
+  
+  
 }

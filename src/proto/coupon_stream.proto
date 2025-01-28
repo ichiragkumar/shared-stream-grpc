@@ -13,8 +13,7 @@ service CouponStreamService {
 
   rpc GetCouponsByStatus(CouponStatusFilter) returns (stream UserCoupon);
 
-
-
+  rpc ActiveCouponIssuesWithBusinessesStream(EmptyRequest) returns (stream CouponIssueWithBusiness);
 }
 
 
@@ -78,4 +77,19 @@ message UserCoupon {
   string userId = 9;       
   string businessId = 10;  
   bool redeemedBySelfActivation = 11; 
+}
+
+
+
+message EmptyRequest {
+
+}
+
+
+message CouponIssueWithBusiness {
+  string couponIssueId = 1;
+  string businessId = 2;
+  string couponName = 3;
+  string businessName = 4;
+  string status = 5;
 }

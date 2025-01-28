@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common';
-import { GrpcMethod } from '@nestjs/microservices';
+import { GrpcMethod, GrpcStreamMethod } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
 import { CouponService } from './coupon.service';
 import { 
@@ -10,7 +10,9 @@ import {
   UserFilter,
   MoreCouponRequest,
   CouponStatusFilter,
-  UserCoupon
+  UserCoupon,
+  CouponIssueWithBusiness,
+  EmptyRequest
 } from "../generated/coupon_stream";
 
 @Controller()
@@ -36,4 +38,12 @@ export class CouponGrpcController {
   GetCouponsByStatus(data: CouponStatusFilter): Observable<UserCoupon> {
     return this.couponService.getCouponsByStatus(data);
   }
+
+
+
+  @GrpcMethod('CouponStreamService', 'ActiveCouponIssuesWithBusinessesStream')
+  ActiveCouponIssuesWithBusinessesStream(): Observable<CouponIssueWithBusiness> {
+  return this.couponService.streamActiveCouponIssuesWithBusiness();
+  }
+
 }
