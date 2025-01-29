@@ -20,12 +20,12 @@ export class CouponGrpcController {
 
   @GrpcMethod('CouponStreamService', 'StreamCouponIssues')
   StreamCouponIssues(data: StatusFilter): Observable<CouponIssue> {
-    return this.couponService.streamCouponIssues(data);
+    return this.couponService.streamCouponIssuesService(data);
   }
 
   @GrpcMethod('CouponStreamService', 'StreamMoreCouponRequests')
   StreamMoreCouponRequests(data: UserFilter): Observable<MoreCouponRequest> {
-    return this.couponService.streamMoreCouponRequests(data);
+    return this.couponService.streamMoreCouponRequestsService(data);
   }
 
   @GrpcMethod('CouponStreamService')
@@ -35,16 +35,16 @@ export class CouponGrpcController {
 
   @GrpcMethod('CouponStreamService', 'ActiveCouponIssuesWithBusinessesStream')
   ActiveCouponIssuesWithBusinessesStream(): Observable<CouponIssueWithBusiness> {
-  return this.couponService.streamActiveCouponIssuesWithBusiness();
+  return this.couponService.streamActiveCouponIssuesWithBusinessService();
   }
 
   @GrpcMethod('CouponStreamService', 'StreamActiveBusinessesStream')
   streamActiveBusinessesStream(): Observable<ActiveBusinessesStreamResponse> {
-    return this.couponService.streamActiveBusinessesWithContractTypes();
+    return this.couponService.streamActiveBusinessesWithContractTypesService();
   }
 
   @GrpcMethod('CouponStreamService', 'StreamActiveCoupons')
   streamActiveCouponsStream(data: UserFilter): Observable<ActiveCouponStreamResponse> {
-    return this.couponService.streamActiveCouponsStream(data);
+    return this.couponService.streamActiveCouponsStreamService(data);
   }
 }

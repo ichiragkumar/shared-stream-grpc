@@ -36,3 +36,5 @@ export interface BusinessBranchDocument extends Document {
   contractTypes:Array<string>;
   _parentId:string;
 }
+
+export const PAGE_LIMIT = 10;
