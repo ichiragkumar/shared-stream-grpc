@@ -33,7 +33,8 @@ message CouponIssue {
 
 
 message UserFilter {
-  string userId = 1 [(validate.rules).string.min_len = 1];
+//  string userId = 1 [(validate.rules).string.min_len = 1];
+    string userId = 1;
 }
 
 message MoreCouponRequest {
