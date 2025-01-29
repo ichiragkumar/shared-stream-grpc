@@ -9,7 +9,8 @@ import {
   MoreCouponRequest,
   CouponIssueWithBusiness,
   ActiveBusinessesStreamResponse,
-  ActiveCouponStreamResponse
+  ActiveCouponStreamResponse,
+  Balance
 } from "../generated/coupon_stream";
 
 @Controller()
@@ -40,5 +41,10 @@ export class CouponGrpcController {
   @GrpcMethod('CouponStreamService', 'StreamActiveCoupons')
   streamActiveCouponsStream(data: StatusFilter): Observable<ActiveCouponStreamResponse> {
     return this.couponService.streamActiveCouponsStreamService(data);
+  }
+
+  @GrpcMethod('CouponStreamService', 'WalletStream')
+  streamWalletController(data: UserFilter): Observable<Balance> {
+    return this.couponService.streamWalletService(data);
   }
 }

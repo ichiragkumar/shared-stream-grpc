@@ -21,7 +21,8 @@ export interface CouponIssue {
 }
 
 export interface UserFilter {
-  userId: string[];
+  /** string userId = 1; */
+  userId: string;
 }
 
 export interface MoreCouponRequest {
@@ -79,6 +80,11 @@ export interface Timestamp {
   nanos: number;
 }
 
+export interface Balance {
+  USD: number;
+  EGP: number;
+}
+
 export const COUPON_PACKAGE_NAME = "coupon";
 
 export interface CouponStreamServiceClient {
@@ -91,6 +97,8 @@ export interface CouponStreamServiceClient {
   streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
 
   activeCouponIssuesWithBusinessesStream(request: EmptyRequest): Observable<CouponIssueWithBusiness>;
+
+  walletStream(request: UserFilter): Observable<Balance>;
 }
 
 export interface CouponStreamServiceController {
@@ -103,6 +111,8 @@ export interface CouponStreamServiceController {
   streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
 
   activeCouponIssuesWithBusinessesStream(request: EmptyRequest): Observable<CouponIssueWithBusiness>;
+
+  walletStream(request: UserFilter): Observable<Balance>;
 }
 
 export function CouponStreamServiceControllerMethods() {
@@ -113,6 +123,7 @@ export function CouponStreamServiceControllerMethods() {
       "streamActiveBusinessesStream",
       "streamMoreCouponRequests",
       "activeCouponIssuesWithBusinessesStream",
+      "walletStream",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

@@ -18,7 +18,11 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "proto:gen": "mkdir -p src/generated && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./src/generated --ts_proto_opt=nestJs=true --proto_path=./src/proto ./src/proto/*.proto"
+    "proto:gen": "mkdir -p src/generated && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./src/generated --ts_proto_opt=nestJs=true --proto_path=./src/proto --proto_path=./src/proto/validate ./src/proto/*.proto",
+    "postbuild": "cp -r ./src/proto ./dist/proto"
+
+
+
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.12.5",
@@ -51,6 +55,7 @@
     "grpc-tools": "^1.12.4",
     "jest": "^29.7.0",
     "prettier": "^3.4.2",
+    "protoc-gen-validate": "^1.0.11",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",

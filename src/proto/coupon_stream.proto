@@ -1,6 +1,10 @@
 syntax = "proto3";
 
+
+
 package coupon;
+
+
 
 service CouponStreamService {
 
@@ -13,6 +17,8 @@ service CouponStreamService {
   rpc StreamMoreCouponRequests(UserFilter) returns (stream MoreCouponRequest);
 
   rpc ActiveCouponIssuesWithBusinessesStream(EmptyRequest) returns (stream CouponIssueWithBusiness);
+
+  rpc WalletStream(UserFilter) returns (stream Balance);
 }
 
 //NOTE: List of statuses to filter, e.g., 'active', 'suspended', 'ended'
@@ -33,7 +39,6 @@ message CouponIssue {
 
 
 message UserFilter {
-//  string userId = 1 [(validate.rules).string.min_len = 1];
     string userId = 1;
 }
 
@@ -73,7 +78,7 @@ message ActiveBusinessesStreamResponse {
 
 
 message ActiveCouponStreamResponse {
-  string id = 1;
+  string _id = 1;
   RedemptionInfo redemptionInfo = 2;
   string code = 3;
   string businessId = 4;
@@ -97,4 +102,10 @@ message RedemptionInfo {
 message Timestamp {
   int64 seconds = 1;
   int32 nanos = 2;
+}
+
+
+message Balance{
+  int64 USD = 1;
+  int64 EGP = 2;
 }

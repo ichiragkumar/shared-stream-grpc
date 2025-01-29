@@ -40,7 +40,7 @@ export function streamActiveCouponsStream(db: Db, data: StatusFilter): Observabl
             }
 
 
-            const couponIssue: ActiveCouponStreamResponse = {
+            const couponIssue: any = {
               _id: change.fullDocument._id.toString(),
               redemptionInfo: change.fullDocument.redemptionInfo || null,
               code: change.fullDocument.code,
