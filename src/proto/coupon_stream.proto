@@ -12,8 +12,6 @@ service CouponStreamService {
 
   rpc StreamMoreCouponRequests(UserFilter) returns (stream MoreCouponRequest);
 
-  rpc GetCouponsByStatus(CouponStatusFilter) returns (stream UserCoupon);
-
   rpc ActiveCouponIssuesWithBusinessesStream(EmptyRequest) returns (stream CouponIssueWithBusiness);
 }
 
@@ -35,7 +33,7 @@ message CouponIssue {
 
 
 message UserFilter {
-  string userId = 1;
+  string userId = 1 [(validate.rules).string.min_len = 1];
 }
 
 message MoreCouponRequest {
@@ -44,27 +42,6 @@ message MoreCouponRequest {
   string couponIssueId = 3; 
   int64 createdAt = 4;      
   string parentId = 5;   
-}
-
-
-message CouponStatusFilter {
-  string userId = 1;          
-  string status = 2;          
-}
-
-
-message UserCoupon {
-  string id = 1;           
-  string code = 2;         
-  string status = 3;       
-  int64 expireAt = 4;      
-  int64 purchasedAt = 5;   
-  int64 redeemedAt = 6;    
-  string purchaseCurrency = 7; 
-  int32 purchasePrice = 8; 
-  string userId = 9;       
-  string businessId = 10;  
-  bool redeemedBySelfActivation = 11; 
 }
 
 

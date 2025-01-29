@@ -6,11 +6,6 @@ import { CouponIssue,  StatusFilter } from '../../generated/coupon_stream';
 
 export function streamCouponIssues(data: StatusFilter, db: Db): Observable<CouponIssue> {
     return new Observable(subscriber => {
-      if (!data.statuses || data.statuses.length === 0) {
-        subscriber.error(new Error('Invalid request: statuses are required.'));
-        return;
-      }
-  
       const changeStream = db.collection('couponIssues').watch(
         [{ $match: { 'fullDocument.status': { $in: data.statuses } } }],
         { fullDocument: 'updateLookup' }

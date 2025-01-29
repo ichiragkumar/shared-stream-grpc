@@ -7,8 +7,6 @@ import {
   CouponIssue, 
   UserFilter,
   MoreCouponRequest,
-  CouponStatusFilter,
-  UserCoupon,
   CouponIssueWithBusiness,
   ActiveBusinessesStreamResponse,
   ActiveCouponStreamResponse
@@ -28,10 +26,6 @@ export class CouponGrpcController {
     return this.couponService.streamMoreCouponRequestsService(data);
   }
 
-  @GrpcMethod('CouponStreamService')
-  GetCouponsByStatus(data: CouponStatusFilter): Observable<UserCoupon> {
-    return this.couponService.getCouponsByStatus(data);
-  }
 
   @GrpcMethod('CouponStreamService', 'ActiveCouponIssuesWithBusinessesStream')
   ActiveCouponIssuesWithBusinessesStream(): Observable<CouponIssueWithBusiness> {
@@ -44,7 +38,7 @@ export class CouponGrpcController {
   }
 
   @GrpcMethod('CouponStreamService', 'StreamActiveCoupons')
-  streamActiveCouponsStream(data: UserFilter): Observable<ActiveCouponStreamResponse> {
+  streamActiveCouponsStream(data: StatusFilter): Observable<ActiveCouponStreamResponse> {
     return this.couponService.streamActiveCouponsStreamService(data);
   }
 }

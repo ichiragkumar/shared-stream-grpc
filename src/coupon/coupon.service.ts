@@ -5,8 +5,6 @@ import {
   CouponIssue, 
   UserFilter,
   MoreCouponRequest,
-  CouponStatusFilter,
-  UserCoupon,
   CouponIssueWithBusiness,
   ActiveBusinessesStreamResponse,
   ActiveCouponStreamResponse
@@ -47,7 +45,6 @@ export class CouponService {
     return streamCouponIssues(data, this.db);
   }
 
-
   streamMoreCouponRequestsService(data: UserFilter): Observable<MoreCouponRequest> {
     return streamMoreCouponRequestsService(data, this.db);
   }
@@ -56,19 +53,13 @@ export class CouponService {
     return streamActiveCouponIssuesWithBusiness(this.db);
   }
 
-  getCouponsByStatus(data: CouponStatusFilter): Observable<UserCoupon> {
-    return new Observable(subscriber => {
-      // Add your streaming implementation
-    });
-  }
-
-
+ 
 
   streamActiveBusinessesWithContractTypesService(): Observable<ActiveBusinessesStreamResponse> {
     return streamActiveBusinessesWithContractTypes(this.db);
   }
 
-  streamActiveCouponsStreamService(data: UserFilter): Observable<ActiveCouponStreamResponse> {
+  streamActiveCouponsStreamService(data: StatusFilter): Observable<ActiveCouponStreamResponse> {
     return streamActiveCouponsStream(this.db, data);
   }
 

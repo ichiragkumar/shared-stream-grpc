@@ -21,7 +21,7 @@ export interface CouponIssue {
 }
 
 export interface UserFilter {
-  userId: string;
+  userId: string[];
 }
 
 export interface MoreCouponRequest {
@@ -30,25 +30,6 @@ export interface MoreCouponRequest {
   couponIssueId: string;
   createdAt: number;
   parentId: string;
-}
-
-export interface CouponStatusFilter {
-  userId: string;
-  status: string;
-}
-
-export interface UserCoupon {
-  id: string;
-  code: string;
-  status: string;
-  expireAt: number;
-  purchasedAt: number;
-  redeemedAt: number;
-  purchaseCurrency: string;
-  purchasePrice: number;
-  userId: string;
-  businessId: string;
-  redeemedBySelfActivation: boolean;
 }
 
 export interface EmptyRequest {
@@ -109,8 +90,6 @@ export interface CouponStreamServiceClient {
 
   streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
 
-  getCouponsByStatus(request: CouponStatusFilter): Observable<UserCoupon>;
-
   activeCouponIssuesWithBusinessesStream(request: EmptyRequest): Observable<CouponIssueWithBusiness>;
 }
 
@@ -123,8 +102,6 @@ export interface CouponStreamServiceController {
 
   streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
 
-  getCouponsByStatus(request: CouponStatusFilter): Observable<UserCoupon>;
-
   activeCouponIssuesWithBusinessesStream(request: EmptyRequest): Observable<CouponIssueWithBusiness>;
 }
 
@@ -135,7 +112,6 @@ export function CouponStreamServiceControllerMethods() {
       "streamActiveCoupons",
       "streamActiveBusinessesStream",
       "streamMoreCouponRequests",
-      "getCouponsByStatus",
       "activeCouponIssuesWithBusinessesStream",
     ];
     for (const method of grpcMethods) {

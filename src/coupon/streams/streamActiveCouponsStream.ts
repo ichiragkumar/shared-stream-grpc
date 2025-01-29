@@ -1,45 +1,47 @@
 import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
-import { ActiveCouponStreamResponse, UserFilter } from '../../generated/coupon_stream';
+import { UserFilter, ActiveCouponStreamResponse, StatusFilter } from '../../generated/coupon_stream';
 
-
-export function streamActiveCouponsStream(db: Db, data: UserFilter): Observable<ActiveCouponStreamResponse> {
+export function streamActiveCouponsStream(db: Db, data: StatusFilter): Observable<ActiveCouponStreamResponse> {
   return new Observable(subscriber => {
-    if (!data || !data.userId) {
-      subscriber.error(new Error('Invalid request: userId is required.'));
-      return;
-    }
 
-    const { userId } = data;
+    const { statuses } = data;
+    const userId = "234324345"
+
 
     db.collection('userCoupons').findOne({ userId })
       .then(userExists => {
         if (!userExists) {
-          subscriber.error(new Error(`No coupon requests found for userId: ${userId}`));
+          console.log('user does not exist');
+          subscriber.error(new Error('user does not exist'));
+
           return;
         }
+
 
         const changeStream = db.collection('userCoupons').watch(
           [
             {
               $match: {
                 'fullDocument.status': { $in: ['active', 'suspended', 'ended'] },
-                'fullDocument.userId': userId
+                'fullDocument.userId': userId,
               },
             },
           ],
           { fullDocument: 'updateLookup' }
         );
 
+
         changeStream.on('change', async (change: any) => {
           if (change.fullDocument) {
             if (!change.fullDocument._id || !change.fullDocument.userId) {
-              subscriber.error(new Error('Invalid document data received'));
+              subscriber.complete(); 
               return;
             }
 
+
             const couponIssue: ActiveCouponStreamResponse = {
-              _id: change.fullDocument._id,
+              _id: change.fullDocument._id.toString(),
               redemptionInfo: change.fullDocument.redemptionInfo || null,
               code: change.fullDocument.code,
               businessId: change.fullDocument.businessId,
@@ -49,18 +51,18 @@ export function streamActiveCouponsStream(db: Db, data: UserFilter): Observable<
               purchaseCurrency: change.fullDocument.purchaseCurrency,
               userId: change.fullDocument.userId,
               status: change.fullDocument.status,
-              expireAt: change.fullDocument.expireAt,
-              createdAt: change.fullDocument.createdAt,
-              purchasedAt: change.fullDocument.purchasedAt,
+              expireAt: { seconds: change.fullDocument.expireAt.getTime() / 1000, nanos: 0 }, 
+              createdAt: { seconds: change.fullDocument.createdAt.getTime() / 1000, nanos: 0 },
+              purchasedAt: { seconds: change.fullDocument.purchasedAt.getTime() / 1000, nanos: 0 }
             };
-
             subscriber.next(couponIssue);
           }
         });
 
+
         changeStream.on('error', (error: any) => {
-          console.error('Change stream error:', error);
-          subscriber.error(error);
+
+          subscriber.complete(); 
         });
 
         return () => {
@@ -69,7 +71,8 @@ export function streamActiveCouponsStream(db: Db, data: UserFilter): Observable<
         };
       })
       .catch(error => {
-        subscriber.error(error);
+
+        subscriber.complete(); 
       });
   });
 }
