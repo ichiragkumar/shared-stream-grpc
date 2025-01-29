@@ -17,6 +17,7 @@ export function streamWalletBalance(db: Db, data: UserFilter): Observable<Balanc
           subscriber.next({ USD: 0, EGP: 0 });
         }
       })
+
       .catch((error) => {
         console.error('Error fetching initial wallet balance:', error);
         subscriber.error(error);

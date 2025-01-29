@@ -1,6 +1,6 @@
-import { Controller } from '@nestjs/common';
+import { BadRequestException, Controller } from '@nestjs/common';
 import { GrpcMethod, GrpcStreamMethod } from '@nestjs/microservices';
-import { Observable } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { CouponService } from './coupon.service';
 import { 
   StatusFilter, 
@@ -22,12 +22,6 @@ export class CouponGrpcController {
     return this.couponService.streamCouponIssuesService(data);
   }
 
-  @GrpcMethod('CouponStreamService', 'StreamMoreCouponRequests')
-  StreamMoreCouponRequests(data: UserFilter): Observable<MoreCouponRequest> {
-    return this.couponService.streamMoreCouponRequestsService(data);
-  }
-
-
   @GrpcMethod('CouponStreamService', 'ActiveCouponIssuesWithBusinessesStream')
   ActiveCouponIssuesWithBusinessesStream(): Observable<CouponIssueWithBusiness> {
   return this.couponService.streamActiveCouponIssuesWithBusinessService();
@@ -43,8 +37,16 @@ export class CouponGrpcController {
     return this.couponService.streamActiveCouponsStreamService(data);
   }
 
-  @GrpcMethod('CouponStreamService', 'WalletStream')
-  streamWalletController(data: UserFilter): Observable<Balance> {
-    return this.couponService.streamWalletService(data);
+
+  @GrpcMethod('CouponStreamService', 'StreamMoreCouponRequests')
+    StreamMoreCouponRequests(data: UserFilter): Observable<MoreCouponRequest> {
+    return this.couponService.streamMoreCouponRequestsService(data);
   }
+
+   @GrpcMethod('CouponStreamService', 'WalletStream')
+   streamWalletController(data: UserFilter): Observable<Balance> {
+    return this.couponService.streamWalletService(data);
+   }
+  
+
 }

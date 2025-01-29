@@ -6,6 +6,9 @@ package coupon;
 
 
 
+
+
+
 service CouponStreamService {
 
   rpc StreamCouponIssues(StatusFilter) returns (stream CouponIssue);

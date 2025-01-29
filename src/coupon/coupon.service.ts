@@ -65,7 +65,7 @@ export class CouponService {
   }
 
   streamWalletService(data: UserFilter): Observable<Balance> {
-    return streamWalletBalance(this.db, data);  // Pass db first, then data
+    return streamWalletBalance(this.db, data);
   }
 
 }

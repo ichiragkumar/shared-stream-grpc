@@ -21,7 +21,6 @@ export interface CouponIssue {
 }
 
 export interface UserFilter {
-  /** string userId = 1; */
   userId: string;
 }
 
@@ -55,7 +54,7 @@ export interface ActiveBusinessesStreamResponse {
 }
 
 export interface ActiveCouponStreamResponse {
-  _id: string;
+  Id: string;
   redemptionInfo: RedemptionInfo | undefined;
   code: string;
   businessId: string;
