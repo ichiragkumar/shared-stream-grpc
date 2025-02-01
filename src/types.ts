@@ -1,5 +1,6 @@
 
 import { Document } from 'mongodb';
+import { Balance } from './generated/coupon_stream';
 
 
 export interface BusinessDocument extends Document {
@@ -38,3 +39,12 @@ export interface BusinessBranchDocument extends Document {
 }
 
 export const PAGE_LIMIT = 10;
+
+
+export enum STREAM_TYPE {
+    BASE   =0,
+    UPDATE =1,
+    INSERT =2,
+    DELETE =3
+}
+

@@ -82,6 +82,7 @@ export interface Timestamp {
 export interface Balance {
   USD: number;
   EGP: number;
+  type: number;
 }
 
 export const COUPON_PACKAGE_NAME = "coupon";

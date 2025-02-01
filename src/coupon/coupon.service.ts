@@ -20,6 +20,7 @@ import { streamActiveCouponsStream } from './streams/streamActiveCouponsStream';
 import {streamWalletBalance} from "./streams/streamWalletBalance"
 
 
+
 interface ActiveCouponIssueWithBusiness {
     id: string;
     status: string;
@@ -64,7 +65,9 @@ export class CouponService {
     return streamActiveCouponsStream(this.db, data);
   }
 
-  streamWalletService(data: UserFilter): Observable<Balance> {
+
+  
+  streamWalletService(data: UserFilter): Observable<Balance > {
     return streamWalletBalance(this.db, data);
   }
 
