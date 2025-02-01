@@ -15,9 +15,49 @@ export interface StatusFilter {
 }
 
 export interface CouponIssue {
+  Id: string;
+  drawId: string;
+  businessContractId: string;
+  deliveryAvailable: boolean;
+  deliveryContactPhone: string;
+  /** ✅ Language-specific value only (not an object) */
+  title: string;
+  /** ✅ Language-specific image URL (not an object) */
+  image: string;
+  /** ✅ Language-specific file URL (not an object) */
+  descriptionFile: string;
+  activeAt: string;
+  endAt: string;
+  expireAt: string;
+  zoneIds: string[];
+  initialAmount: number;
+  currency: string;
+  purchasePriceAmount: number;
+  discountAmount: number;
+  sellPriceAmount: number;
+  ticketPriceAmount: number;
+  grandDrawMultiplier: number;
+  couponsSource: string;
+  couponsCsvPath: string;
+  additionalCouponsCsvPath: string;
+  arrangement: number;
+  couponsPrefix: string;
+  businessId: string;
+  createdAt: string;
+  type: string;
+  amountExpired: number;
+  additionalAmount: number;
+  lastIncrId: number;
+  nextCodeIncrId: number;
+  RawPath: string;
+  /** ✅ Language-specific restrictions (not an object) */
+  restrictions: string;
   id: string;
+  methodsOfRedemption: string[];
+  amountUsed: number;
+  amountSold: number;
+  streamtype: number;
   status: string;
-  updatedAt: number;
 }
 
 export interface UserFilter {
@@ -108,7 +148,7 @@ export interface Balance {
 export const COUPON_PACKAGE_NAME = "coupon";
 
 export interface CouponStreamServiceClient {
-  streamCouponIssues(request: StatusFilter): Observable<CouponIssue>;
+  streamCouponIssues(request: LanguageFilter): Observable<CouponIssue>;
 
   streamActiveCoupons(request: UserFilter): Observable<ActiveCouponStreamResponse>;
 
@@ -122,7 +162,7 @@ export interface CouponStreamServiceClient {
 }
 
 export interface CouponStreamServiceController {
-  streamCouponIssues(request: StatusFilter): Observable<CouponIssue>;
+  streamCouponIssues(request: LanguageFilter): Observable<CouponIssue>;
 
   streamActiveCoupons(request: UserFilter): Observable<ActiveCouponStreamResponse>;
 

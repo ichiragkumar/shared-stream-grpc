@@ -5,13 +5,9 @@ syntax = "proto3";
 package coupon;
 
 
-
-
-
-
 service CouponStreamService {
 
-  rpc StreamCouponIssues(StatusFilter) returns (stream CouponIssue);
+  rpc StreamCouponIssues(LanguageFilter) returns (stream CouponIssue);
 
   rpc StreamActiveCoupons(UserFilter) returns (stream ActiveCouponStreamResponse);
 
@@ -35,12 +31,48 @@ message StatusFilter {
 
 
 
-message CouponIssue {
-  string id = 1;           
-  string status = 2;       
-  int64 updatedAt = 3; 
-}
 
+message CouponIssue {
+  string _id = 1;
+  string drawId = 2;
+  string businessContractId = 3;
+  bool deliveryAvailable = 4;
+  string deliveryContactPhone = 5;
+  string title = 6; // ✅ Language-specific value only (not an object)
+  string image = 7; // ✅ Language-specific image URL (not an object)
+  string descriptionFile = 8; // ✅ Language-specific file URL (not an object)
+  string activeAt = 9;
+  string endAt = 10;
+  string expireAt = 11;
+  repeated string zoneIds = 12;
+  int32 initialAmount = 13;
+  string currency = 14;
+  int32 purchasePriceAmount = 15;
+  int32 discountAmount = 16;
+  int32 sellPriceAmount = 17;
+  int32 ticketPriceAmount = 18;
+  int32 grandDrawMultiplier = 19;
+  string couponsSource = 20;
+  string couponsCsvPath = 21;
+  string additionalCouponsCsvPath = 22;
+  int32 arrangement = 23;
+  string couponsPrefix = 24;
+  string businessId = 25;
+  string createdAt = 26;
+  string type = 27;
+  int32 amountExpired = 28;
+  int32 additionalAmount = 29;
+  int32 lastIncrId = 30;
+  int32 nextCodeIncrId = 31;
+  string _rawPath = 32;
+  string restrictions = 33; // ✅ Language-specific restrictions (not an object)
+  string id = 34;
+  repeated string methodsOfRedemption = 35;
+  int32 amountUsed = 36;
+  int32 amountSold = 37;
+  int32 streamtype = 38;
+  string status = 39;
+}
 
 
 message UserFilter {
@@ -49,7 +81,7 @@ message UserFilter {
 }
 
 message LanguageFilter {
- optional  string languageCode = 1;
+ optional string languageCode = 1;
 }
 
 

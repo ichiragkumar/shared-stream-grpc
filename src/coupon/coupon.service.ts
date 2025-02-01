@@ -45,7 +45,7 @@ export class CouponService {
     this.db = await DatabaseService.connect();
   }
 
-  streamCouponIssuesService(data: StatusFilter): Observable<CouponIssue> {
+  streamCouponIssuesService(data: LanguageFilter): Observable<CouponIssue> {
     return streamCouponIssues(data, this.db);
   }
 

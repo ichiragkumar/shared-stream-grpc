@@ -7,31 +7,31 @@ import { DEFAULT_COUPON_ISSUE_WITH_BUSINESS } from 'src/config/constant';
 
 let streamType: STREAM_TYPE;
 
-const mapToCouponIssue = (doc: any, languageCode: string): CouponIssueWithBusiness => {
+const mapToCouponIssue = (document: any, languageCode: string): CouponIssueWithBusiness => {
   const lang = languageCode || 'en';
   return {
-    couponIssueId: doc._id?.toString() || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.couponIssueId,
-    businessId: doc.businessId?.toString() || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.businessId,
-    couponName: doc.title?.[lang] || doc.title?.en || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.couponName,
-    businessName: doc.business?.title?.[lang] || doc.business?.title?.en || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.businessName,
-    status: doc.status || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.status,
-    logo: doc.business?.logo?.light?.[lang] || 
-          doc.business?.logo?.light?.en || 
-          doc.business?.logo?.dark?.[lang] || 
-          doc.business?.logo?.dark?.en || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.logo,
-    categories: Array.isArray(doc.business?.categories) ? doc.business.categories : [],
-    endsAt: doc.endAt ? safeParseDate(doc.endAt) : DEFAULT_COUPON_ISSUE_WITH_BUSINESS.endsAt,
-    amountLeft: typeof doc.initialAmount === 'number' ? doc.initialAmount - (doc.amountSold || 0) : DEFAULT_COUPON_ISSUE_WITH_BUSINESS.amountLeft,
-    type: doc.type || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.type,
-    priceAmount: Number(doc.priceAmount) || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.priceAmount,
-    currency: doc.currency || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.currency,
-    drawId: doc.drawId || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.drawId,
-    sellPriceAmount: Number(doc.sellPriceAmount) || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.sellPriceAmount,
-    restrictedBranchIds: Array.isArray(doc.zoneIds) ? doc.zoneIds : DEFAULT_COUPON_ISSUE_WITH_BUSINESS.restrictedBranchIds,
-    drawNumbers: Array.isArray(doc.drawNumbers) ? doc.drawNumbers : DEFAULT_COUPON_ISSUE_WITH_BUSINESS.drawNumbers,
-    descriptionFile: doc.descriptionFile?.[lang] || doc.descriptionFile?.en || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.descriptionFile,
-    purchasePriceAmount: Number(doc.purchasePriceAmount) || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.purchasePriceAmount,
-    arrangement: Number(doc.arrangement) || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.arrangement,
+    couponIssueId: document._id?.toString() || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.couponIssueId,
+    businessId: document.businessId?.toString() || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.businessId,
+    couponName: document.title?.[lang] || document.title?.en || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.couponName,
+    businessName: document.business?.title?.[lang] || document.business?.title?.en || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.businessName,
+    status: document.status || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.status,
+    logo: document.business?.logo?.light?.[lang] || 
+          document.business?.logo?.light?.en || 
+          document.business?.logo?.dark?.[lang] || 
+          document.business?.logo?.dark?.en || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.logo,
+    categories: Array.isArray(document.business?.categories) ? document.business.categories : [],
+    endsAt: document.endAt ? safeParseDate(document.endAt) : DEFAULT_COUPON_ISSUE_WITH_BUSINESS.endsAt as any,
+    amountLeft: typeof document.initialAmount === 'number' ? document.initialAmount - (document.amountSold || 0) : DEFAULT_COUPON_ISSUE_WITH_BUSINESS.amountLeft,
+    type: document.type || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.type,
+    priceAmount: Number(document.priceAmount) || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.priceAmount,
+    currency: document.currency || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.currency,
+    drawId: document.drawId || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.drawId,
+    sellPriceAmount: Number(document.sellPriceAmount) || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.sellPriceAmount,
+    restrictedBranchIds: Array.isArray(document.zoneIds) ? document.zoneIds : DEFAULT_COUPON_ISSUE_WITH_BUSINESS.restrictedBranchIds,
+    drawNumbers: Array.isArray(document.drawNumbers) ? document.drawNumbers : DEFAULT_COUPON_ISSUE_WITH_BUSINESS.drawNumbers,
+    descriptionFile: document.descriptionFile?.[lang] || document.descriptionFile?.en || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.descriptionFile,
+    purchasePriceAmount: Number(document.purchasePriceAmount) || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.purchasePriceAmount,
+    arrangement: Number(document.arrangement) || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.arrangement,
     streamtype: streamType || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.streamtype
   };
 };
@@ -69,8 +69,8 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: Lan
           .aggregate(pipeline)
           .toArray();
 
-        for (const doc of initialResults) {
-          const couponIssue = mapToCouponIssue(doc, languageCode);
+        for (const document of initialResults) {
+          const couponIssue = mapToCouponIssue(document, languageCode);
           subscriber.next(couponIssue);
         }
 
@@ -98,7 +98,7 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: Lan
           try {
             switch (change.operationType) {
               case 'insert':
-
+                streamType = STREAM_TYPE.INSERT;
                 break;
               case 'update':
                 streamType = STREAM_TYPE.UPDATE;
@@ -107,22 +107,20 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: Lan
               default:
                 return;
             }
-
-
-           if (change.fullDocument) {
-              const updatedDoc = await db.collection('couponIssues')
+           if (change.fulldocumentument) {
+              const updateddocument = await db.collection('couponIssues')
                 .aggregate([
                   { 
                     $match: { 
-                      _id: change.fullDocument._id
+                      _id: change.fulldocumentument._id
                     } 
                   },
                   ...pipeline
                 ])
                 .next();
 
-              if (updatedDoc) {
-                const couponIssue = mapToCouponIssue(updatedDoc, languageCode);
+              if (updateddocument) {
+                const couponIssue = mapToCouponIssue(updateddocument, languageCode);
                 subscriber.next(couponIssue);
               }
             }

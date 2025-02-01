@@ -63,3 +63,29 @@
 
   	
 
+
+
+-----------------
+1. updating this, 
+   since the StausFilter are constant, 
+   we actually do need from client side
+   we can manage it from server side itself
+
+  rpc StreamCouponIssues(StatusFilter) returns (stream CouponIssue);
+
+  message StatusFilter {
+  repeated string statuses = 1; 
+  }
+
+  message CouponIssue {
+  string id = 1;           
+  string status = 2;       
+  int64 updatedAt = 3; 
+}
+
+
+// Now updatig it  to, accept lanhageCode as otpional
+// not accepting any status listenners
+
+
+
