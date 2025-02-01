@@ -20,17 +20,16 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "proto:gen": "mkdir -p src/generated && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./src/generated --ts_proto_opt=nestJs=true --proto_path=./src/proto --proto_path=./src/proto/validate ./src/proto/*.proto",
     "postbuild": "cp -r ./src/proto ./dist/proto"
-
-
-
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.12.5",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
-    "@nestjs/microservices": "^11.0.5",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/microservices": "^11.0.6",
     "@nestjs/platform-express": "^11.0.1",
     "dotenv": "^16.4.7",
+    "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.12.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"

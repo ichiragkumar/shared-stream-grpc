@@ -1,4 +1,4 @@
-import { BadRequestException, Controller } from '@nestjs/common';
+import { BadRequestException, Controller, UseGuards } from '@nestjs/common';
 import { GrpcMethod, GrpcStreamMethod } from '@nestjs/microservices';
 import { Observable, of, throwError } from 'rxjs';
 import { CouponService } from './coupon.service';
@@ -12,6 +12,7 @@ import {
   ActiveCouponStreamResponse,
   Balance
 } from "../generated/coupon_stream";
+import { GrpcAuthGuard } from 'src/guards/grpcAuthGaurd';
 
 @Controller()
 export class CouponGrpcController {
@@ -44,6 +45,7 @@ export class CouponGrpcController {
   }
 
    @GrpcMethod('CouponStreamService', 'WalletStream')
+   @UseGuards(GrpcAuthGuard)
    streamWalletController(data: UserFilter): Observable<Balance> {
     return this.couponService.streamWalletService(data);
    }
