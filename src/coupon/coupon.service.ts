@@ -8,7 +8,8 @@ import {
   CouponIssueWithBusiness,
   ActiveBusinessesStreamResponse,
   ActiveCouponStreamResponse,
-  Balance
+  Balance,
+  LanguageFilter
 } from "../generated/coupon_stream"
 import { Db } from 'mongodb';
 import { DatabaseService } from 'src/config/database.config';
@@ -52,9 +53,11 @@ export class CouponService {
     return streamMoreCouponRequestsService(data, this.db);
   }
 
-  streamActiveCouponIssuesWithBusinessService(): Observable<CouponIssueWithBusiness> {
-    return streamActiveCouponIssuesWithBusiness(this.db);
-  }
+  
+
+  streamActiveCouponIssuesWithBusinessService(data: LanguageFilter): Observable<CouponIssueWithBusiness> {
+    return streamActiveCouponIssuesWithBusiness(this.db, data);
+}
 
 
   streamActiveBusinessesWithContractTypesService(): Observable<ActiveBusinessesStreamResponse> {

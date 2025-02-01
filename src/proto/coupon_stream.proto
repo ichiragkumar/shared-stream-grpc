@@ -19,7 +19,9 @@ service CouponStreamService {
 
   rpc StreamMoreCouponRequests(UserFilter) returns (stream MoreCouponRequest);
 
-  rpc ActiveCouponIssuesWithBusinessesStream(EmptyRequest) returns (stream CouponIssueWithBusiness);
+
+  rpc ActiveCouponIssuesWithBusinessesStream(LanguageFilter) returns (stream CouponIssueWithBusiness);
+
 
   rpc WalletStream(UserFilter) returns (stream Balance);
 }
@@ -42,8 +44,14 @@ message CouponIssue {
 
 
 message UserFilter {
-    string userId = 1;
+  string userId = 1;
+  optional string languageCode = 2;
 }
+
+message LanguageFilter {
+ optional  string languageCode = 1;
+}
+
 
 message MoreCouponRequest {
   string id = 1;           
@@ -57,15 +65,6 @@ message MoreCouponRequest {
 
 message EmptyRequest {
 
-}
-
-
-message CouponIssueWithBusiness {
-  string couponIssueId = 1;
-  string businessId = 2;
-  string couponName = 3;
-  string businessName = 4;
-  string status = 5;
 }
 
 
@@ -94,6 +93,28 @@ message ActiveCouponStreamResponse {
   Timestamp expireAt = 11;
   Timestamp createdAt = 12;
   Timestamp purchasedAt = 13;
+}
+
+message CouponIssueWithBusiness {
+  string couponIssueId = 1;
+  string businessId = 2;
+  string couponName = 3;
+  string businessName = 4;
+  string status = 5;
+  string logo = 6;
+  repeated string categories = 7;
+  string endsAt = 8;
+  int32 amountLeft = 9;
+  string type = 10;
+  int32 priceAmount = 11;
+  string currency = 12;
+  string drawId = 13;
+  int32 sellPriceAmount = 14;
+  repeated string restrictedBranchIds = 15;
+  repeated string drawNumbers = 16;
+  string descriptionFile = 17;
+  int32 purchasePriceAmount = 18;
+  int32 arrangement = 19;
 }
 
 

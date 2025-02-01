@@ -22,6 +22,11 @@ export interface CouponIssue {
 
 export interface UserFilter {
   userId: string;
+  languageCode?: string | undefined;
+}
+
+export interface LanguageFilter {
+  languageCode?: string | undefined;
 }
 
 export interface MoreCouponRequest {
@@ -33,14 +38,6 @@ export interface MoreCouponRequest {
 }
 
 export interface EmptyRequest {
-}
-
-export interface CouponIssueWithBusiness {
-  couponIssueId: string;
-  businessId: string;
-  couponName: string;
-  businessName: string;
-  status: string;
 }
 
 export interface ActiveBusinessesStreamResponse {
@@ -67,6 +64,28 @@ export interface ActiveCouponStreamResponse {
   expireAt: Timestamp | undefined;
   createdAt: Timestamp | undefined;
   purchasedAt: Timestamp | undefined;
+}
+
+export interface CouponIssueWithBusiness {
+  couponIssueId: string;
+  businessId: string;
+  couponName: string;
+  businessName: string;
+  status: string;
+  logo: string;
+  categories: string[];
+  endsAt: string;
+  amountLeft: number;
+  type: string;
+  priceAmount: number;
+  currency: string;
+  drawId: string;
+  sellPriceAmount: number;
+  restrictedBranchIds: string[];
+  drawNumbers: string[];
+  descriptionFile: string;
+  purchasePriceAmount: number;
+  arrangement: number;
 }
 
 export interface RedemptionInfo {
@@ -96,7 +115,7 @@ export interface CouponStreamServiceClient {
 
   streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
 
-  activeCouponIssuesWithBusinessesStream(request: EmptyRequest): Observable<CouponIssueWithBusiness>;
+  activeCouponIssuesWithBusinessesStream(request: LanguageFilter): Observable<CouponIssueWithBusiness>;
 
   walletStream(request: UserFilter): Observable<Balance>;
 }
@@ -110,7 +129,7 @@ export interface CouponStreamServiceController {
 
   streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
 
-  activeCouponIssuesWithBusinessesStream(request: EmptyRequest): Observable<CouponIssueWithBusiness>;
+  activeCouponIssuesWithBusinessesStream(request: LanguageFilter): Observable<CouponIssueWithBusiness>;
 
   walletStream(request: UserFilter): Observable<Balance>;
 }

@@ -48,3 +48,60 @@ export enum STREAM_TYPE {
     DELETE =3
 }
 
+
+export interface CouponIssueWithBusiness {
+  couponIssueId: string;
+  businessId: string;
+  couponName: string;
+  businessName: string;
+  status: string;
+  logo?: string;
+  categories?: string[];
+  title?: string;
+  endsAt?: number;
+  amountLeft?: number;
+  type?: string;
+  priceAmount?: number;
+  currency?: string;
+  drawId?: string;
+  sellPriceAmount?: number;
+  restrictedBranchIds?: string[];
+  drawNumbers?: string[];
+  descriptionFile?: string;
+  purchasePriceAmount?: number;
+  arrangement?: number;
+}
+
+
+
+export const safeParseDate = (dateValue: any): string => {
+  if (!dateValue) return '';
+  
+  try {
+    // Handle MongoDB extended JSON date format
+    if (dateValue.$date) {
+      // If it's already an ISO string
+      if (typeof dateValue.$date === 'string') {
+        return dateValue.$date;
+      }
+      // If it's a number (timestamp)
+      if (typeof dateValue.$date === 'number') {
+        return new Date(dateValue.$date).toISOString();
+      }
+    }
+    
+    // Handle regular date strings or timestamps
+    if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+      const date = new Date(dateValue);
+      // Validate the date is valid before converting to ISO string
+      if (!isNaN(date.getTime())) {
+        return date.toISOString();
+      }
+    }
+    
+    return '';
+  } catch (error) {
+    console.error('Error parsing date:', error, 'Value:', dateValue);
+    return '';
+  }
+};

@@ -10,8 +10,10 @@ import {
   CouponIssueWithBusiness,
   ActiveBusinessesStreamResponse,
   ActiveCouponStreamResponse,
-  Balance
+  Balance,
+  LanguageFilter
 } from "../generated/coupon_stream";
+
 
 
 
@@ -24,10 +26,13 @@ export class CouponGrpcController {
     return this.couponService.streamCouponIssuesService(data);
   }
 
-  @GrpcMethod('CouponStreamService', 'ActiveCouponIssuesWithBusinessesStream')
-  ActiveCouponIssuesWithBusinessesStream(): Observable<CouponIssueWithBusiness> {
-  return this.couponService.streamActiveCouponIssuesWithBusinessService();
+  
+
+    @GrpcMethod('CouponStreamService', 'ActiveCouponIssuesWithBusinessesStream')
+  ActiveCouponIssuesWithBusinessesStream(data: LanguageFilter): Observable<CouponIssueWithBusiness> {
+      return this.couponService.streamActiveCouponIssuesWithBusinessService(data);
   }
+
 
   @GrpcMethod('CouponStreamService', 'StreamActiveBusinessesStream')
   streamActiveBusinessesStream(): Observable<ActiveBusinessesStreamResponse> {
