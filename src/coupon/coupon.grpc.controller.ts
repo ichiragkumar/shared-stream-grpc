@@ -45,7 +45,7 @@ export class CouponGrpcController {
   }
 
    @GrpcMethod('CouponStreamService', 'WalletStream')
-  //  @UseGuards(GrpcAuthGuard)
+   @UseGuards(GrpcAuthGuard)
    streamWalletController(data: UserFilter): Observable<Balance> {
     return this.couponService.streamWalletService(data);
    }
