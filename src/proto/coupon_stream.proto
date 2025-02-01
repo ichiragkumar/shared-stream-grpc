@@ -11,7 +11,7 @@ service CouponStreamService {
 
   rpc StreamActiveCoupons(UserFilter) returns (stream ActiveCouponStreamResponse);
 
-  rpc StreamActiveBusinessesStream(EmptyRequest) returns (stream ActiveBusinessesStreamResponse);
+  rpc StreamActiveBusinessesStream(LanguageFilter) returns (stream ActiveBusinessesStreamResponse);
 
   rpc StreamMoreCouponRequests(UserFilter) returns (stream MoreCouponRequest);
 
@@ -108,6 +108,7 @@ message ActiveBusinessesStreamResponse {
   repeated string categories = 5;
   string   businessId = 6;
   string   contractType = 7;
+  int32 streamType = 8;
 }
 
 

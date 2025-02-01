@@ -88,6 +88,7 @@ export interface ActiveBusinessesStreamResponse {
   categories: string[];
   businessId: string;
   contractType: string;
+  streamType: number;
 }
 
 export interface ActiveCouponStreamResponse {
@@ -152,7 +153,7 @@ export interface CouponStreamServiceClient {
 
   streamActiveCoupons(request: UserFilter): Observable<ActiveCouponStreamResponse>;
 
-  streamActiveBusinessesStream(request: EmptyRequest): Observable<ActiveBusinessesStreamResponse>;
+  streamActiveBusinessesStream(request: LanguageFilter): Observable<ActiveBusinessesStreamResponse>;
 
   streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
 
@@ -166,7 +167,7 @@ export interface CouponStreamServiceController {
 
   streamActiveCoupons(request: UserFilter): Observable<ActiveCouponStreamResponse>;
 
-  streamActiveBusinessesStream(request: EmptyRequest): Observable<ActiveBusinessesStreamResponse>;
+  streamActiveBusinessesStream(request: LanguageFilter): Observable<ActiveBusinessesStreamResponse>;
 
   streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
 

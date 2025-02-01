@@ -60,16 +60,14 @@ export class CouponService {
 }
 
 
-  streamActiveBusinessesWithContractTypesService(): Observable<ActiveBusinessesStreamResponse> {
-    return streamActiveBusinessesWithContractTypes(this.db);
+  streamActiveBusinessesWithContractTypesService(data: LanguageFilter): Observable<ActiveBusinessesStreamResponse> {
+    return streamActiveBusinessesWithContractTypes(data, this.db);
   }
 
   streamActiveCouponsStreamService(data: StatusFilter): Observable<ActiveCouponStreamResponse> {
     return streamActiveCouponsStream(this.db, data);
   }
 
-
-  
   streamWalletService(data: UserFilter): Observable<Balance > {
     return streamWalletBalance(this.db, data);
   }

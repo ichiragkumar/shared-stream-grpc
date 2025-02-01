@@ -34,8 +34,8 @@ export class CouponGrpcController {
 
 
   @GrpcMethod('CouponStreamService', 'StreamActiveBusinessesStream')
-  streamActiveBusinessesStream(): Observable<ActiveBusinessesStreamResponse> {
-    return this.couponService.streamActiveBusinessesWithContractTypesService();
+  streamActiveBusinessesStream(data: LanguageFilter): Observable<ActiveBusinessesStreamResponse> {
+    return this.couponService.streamActiveBusinessesWithContractTypesService(data);
   }
 
   @GrpcMethod('CouponStreamService', 'StreamActiveCoupons')
