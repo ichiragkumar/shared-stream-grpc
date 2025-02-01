@@ -115,6 +115,7 @@ message CouponIssueWithBusiness {
   string descriptionFile = 17;
   int32 purchasePriceAmount = 18;
   int32 arrangement = 19;
+  int32 streamtype = 20;
 }
 
 

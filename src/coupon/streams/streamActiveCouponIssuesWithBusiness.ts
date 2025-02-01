@@ -1,12 +1,14 @@
 import { Observable } from 'rxjs';
-import { Db, ObjectId } from 'mongodb';
+import { Db } from 'mongodb';
 import { CouponIssueWithBusiness, LanguageFilter, UserFilter } from 'src/generated/coupon_stream';
-import { PAGE_LIMIT, safeParseDate } from 'src/types';
+import {  safeParseDate, STREAM_TYPE } from 'src/types';
 import { DEFAULT_COUPON_ISSUE_WITH_BUSINESS } from 'src/config/constant';
+
+
+let streamType: STREAM_TYPE;
 
 const mapToCouponIssue = (doc: any, languageCode: string): CouponIssueWithBusiness => {
   const lang = languageCode || 'en';
-  
   return {
     couponIssueId: doc._id?.toString() || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.couponIssueId,
     businessId: doc.businessId?.toString() || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.businessId,
@@ -29,7 +31,8 @@ const mapToCouponIssue = (doc: any, languageCode: string): CouponIssueWithBusine
     drawNumbers: Array.isArray(doc.drawNumbers) ? doc.drawNumbers : DEFAULT_COUPON_ISSUE_WITH_BUSINESS.drawNumbers,
     descriptionFile: doc.descriptionFile?.[lang] || doc.descriptionFile?.en || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.descriptionFile,
     purchasePriceAmount: Number(doc.purchasePriceAmount) || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.purchasePriceAmount,
-    arrangement: Number(doc.arrangement) || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.arrangement
+    arrangement: Number(doc.arrangement) || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.arrangement,
+    streamtype: streamType || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.streamtype
   };
 };
 
@@ -79,7 +82,6 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: Lan
                 { 'operationType': 'insert' },
                 { 'operationType': 'update' },
                 { 'operationType': 'replace' },
-                { 'operationType': 'delete' },
                 {
                   'operationType': 'update',
                   'updateDescription.updatedFields.status': { 
@@ -94,6 +96,19 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: Lan
 
         changeStream.on('change', async (change: any) => {
           try {
+            switch (change.operationType) {
+              case 'insert':
+
+                break;
+              case 'update':
+                streamType = STREAM_TYPE.UPDATE;
+                break;
+
+              default:
+                return;
+            }
+
+
            if (change.fullDocument) {
               const updatedDoc = await db.collection('couponIssues')
                 .aggregate([

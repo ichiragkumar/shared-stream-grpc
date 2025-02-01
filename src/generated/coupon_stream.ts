@@ -86,6 +86,7 @@ export interface CouponIssueWithBusiness {
   descriptionFile: string;
   purchasePriceAmount: number;
   arrangement: number;
+  streamtype: number;
 }
 
 export interface RedemptionInfo {
