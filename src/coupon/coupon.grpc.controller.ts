@@ -12,7 +12,7 @@ import {
   ActiveCouponStreamResponse,
   Balance
 } from "../generated/coupon_stream";
-import { GrpcAuthGuard } from 'src/guards/grpcAuthGaurd';
+// import { GrpcAuthGuard } from 'src/guards/grpcAuthGaurd';
 
 @Controller()
 export class CouponGrpcController {
