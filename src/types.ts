@@ -14,6 +14,25 @@ export interface BusinessDocument extends Document {
   createdAt: Date;
 }
 
+export interface SpecialOfferDocument extends Document {
+  _id: string;
+  contractId: string
+  businessId: string;
+  status: string;
+  title: Record<string, string>;
+  image: Record<string, string>;
+  startAt: Date;
+  endAt: Date;
+  displayedFrom: Date;
+  displayedUntil: Date;
+  content:Record<string, string>;
+  zoneIds:string[]
+  createdAt: Date;
+  level: string;
+  orderWeight:number;
+  viewsCount:number;
+}
+
 export interface BusinessBranchDetailDocument extends Document {
   _id: string;
   images: string[];
