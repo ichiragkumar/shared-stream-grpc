@@ -19,7 +19,7 @@ service CouponStreamService {
   rpc ActiveCouponIssuesWithBusinessesStream(LanguageFilter) returns (stream CouponIssueWithBusiness);
 
 
-  rpc WalletStream(UserFilter) returns (stream Balance);
+  rpc WalletStream(UserFilter) returns (stream WalletBalanceResponse);
 }
 
 //NOTE: List of statuses to filter, e.g., 'active', 'suspended', 'ended'
@@ -38,9 +38,9 @@ message CouponIssue {
   string businessContractId = 3;
   bool deliveryAvailable = 4;
   string deliveryContactPhone = 5;
-  string title = 6; // ✅ Language-specific value only (not an object)
-  string image = 7; // ✅ Language-specific image URL (not an object)
-  string descriptionFile = 8; // ✅ Language-specific file URL (not an object)
+  string title = 6; 
+  string image = 7; 
+  string descriptionFile = 8;
   string activeAt = 9;
   string endAt = 10;
   string expireAt = 11;
@@ -163,9 +163,14 @@ message Timestamp {
 }
 
 
-message Balance{
+message Balance {
   int64 USD = 1;
   int64 EGP = 2;
+}
+
+message WalletBalanceResponse {
+  Balance availableBalances = 1;
+  Balance blockedBalances = 2;
   int32 type = 3;
 
 }

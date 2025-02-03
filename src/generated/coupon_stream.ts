@@ -143,6 +143,11 @@ export interface Timestamp {
 export interface Balance {
   USD: number;
   EGP: number;
+}
+
+export interface WalletBalanceResponse {
+  availableBalances: Balance | undefined;
+  blockedBalances: Balance | undefined;
   type: number;
 }
 
@@ -159,7 +164,7 @@ export interface CouponStreamServiceClient {
 
   activeCouponIssuesWithBusinessesStream(request: LanguageFilter): Observable<CouponIssueWithBusiness>;
 
-  walletStream(request: UserFilter): Observable<Balance>;
+  walletStream(request: UserFilter): Observable<WalletBalanceResponse>;
 }
 
 export interface CouponStreamServiceController {
@@ -173,7 +178,7 @@ export interface CouponStreamServiceController {
 
   activeCouponIssuesWithBusinessesStream(request: LanguageFilter): Observable<CouponIssueWithBusiness>;
 
-  walletStream(request: UserFilter): Observable<Balance>;
+  walletStream(request: UserFilter): Observable<WalletBalanceResponse>;
 }
 
 export function CouponStreamServiceControllerMethods() {

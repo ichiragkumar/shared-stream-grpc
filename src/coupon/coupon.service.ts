@@ -9,7 +9,8 @@ import {
   ActiveBusinessesStreamResponse,
   ActiveCouponStreamResponse,
   Balance,
-  LanguageFilter
+  LanguageFilter,
+  WalletBalanceResponse
 } from "../generated/coupon_stream"
 import { Db } from 'mongodb';
 import { DatabaseService } from 'src/config/database.config';
@@ -68,7 +69,7 @@ export class CouponService {
     return streamActiveCouponsStream(this.db, data);
   }
 
-  streamWalletService(data: UserFilter): Observable<Balance > {
+  streamWalletService(data: UserFilter): Observable<WalletBalanceResponse > {
     return streamWalletBalance(this.db, data);
   }
 
