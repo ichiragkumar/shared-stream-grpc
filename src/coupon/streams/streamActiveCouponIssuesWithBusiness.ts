@@ -58,7 +58,7 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: Lan
           }
         ];
 
-        // Fetch initial documents
+
         const initialResults = await db.collection('couponIssues')
           .aggregate(pipeline)
           .toArray();
@@ -68,9 +68,9 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: Lan
           subscriber.next(couponIssue);
         }
 
-        // Watch for **all changes** in couponIssues
+
         const changeStream = db.collection('couponIssues').watch(
-          [{ $match: {} }], // Watch for **any change**
+          [{ $match: {} }],
           { fullDocument: 'updateLookup' }
         );
 
