@@ -1,9 +1,8 @@
 import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
-import { CouponIssueWithBusiness, LanguageFilter, UserFilter } from 'src/generated/coupon_stream';
-import {  safeParseDate, STREAM_TYPE } from 'src/types';
+import { CouponIssueWithBusiness, LanguageFilter } from 'src/generated/coupon_stream';
+import { safeParseDate, STREAM_TYPE } from 'src/types';
 import { DEFAULT_COUPON_ISSUE_WITH_BUSINESS } from 'src/config/constant';
-
 
 let streamType: STREAM_TYPE;
 
@@ -41,13 +40,8 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: Lan
     (async () => {
       try {
         const languageCode = languageFilter?.languageCode || 'ar';
-        
+
         const pipeline = [
-          { 
-            $match: { 
-              status: { $in: ['active', 'suspended', 'ended'] }
-            } 
-          },
           { 
             $lookup: {
               from: 'businesses',
@@ -64,7 +58,7 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: Lan
           }
         ];
 
-
+        // Fetch initial documents
         const initialResults = await db.collection('couponIssues')
           .aggregate(pipeline)
           .toArray();
@@ -74,23 +68,9 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: Lan
           subscriber.next(couponIssue);
         }
 
-
+        // Watch for **all changes** in couponIssues
         const changeStream = db.collection('couponIssues').watch(
-          [{ 
-            $match: { 
-              $or: [
-                { 'operationType': 'insert' },
-                { 'operationType': 'update' },
-                { 'operationType': 'replace' },
-                {
-                  'operationType': 'update',
-                  'updateDescription.updatedFields.status': { 
-                    $exists: true 
-                  }
-                }
-              ]
-            } 
-          }],
+          [{ $match: {} }], // Watch for **any change**
           { fullDocument: 'updateLookup' }
         );
 
@@ -101,26 +81,26 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: Lan
                 streamType = STREAM_TYPE.INSERT;
                 break;
               case 'update':
+              case 'replace':
                 streamType = STREAM_TYPE.UPDATE;
                 break;
-
+              case 'delete':
+                streamType = STREAM_TYPE.DELETE;
+                break;
               default:
                 return;
             }
-           if (change.fulldocumentument) {
-              const updateddocument = await db.collection('couponIssues')
+
+            if (change.fullDocument) {
+              const updatedDocument = await db.collection('couponIssues')
                 .aggregate([
-                  { 
-                    $match: { 
-                      _id: change.fulldocumentument._id
-                    } 
-                  },
+                  { $match: { _id: change.fullDocument._id } },
                   ...pipeline
                 ])
                 .next();
 
-              if (updateddocument) {
-                const couponIssue = mapToCouponIssue(updateddocument, languageCode);
+              if (updatedDocument) {
+                const couponIssue = mapToCouponIssue(updatedDocument, languageCode);
                 subscriber.next(couponIssue);
               }
             }
