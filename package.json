@@ -23,14 +23,17 @@
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.12.5",
+    "@grpc/reflection": "^1.0.4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/microservices": "^11.0.6",
     "@nestjs/platform-express": "^11.0.1",
     "dotenv": "^16.4.7",
+    "grpc-health-check": "^2.0.2",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.12.0",
+    "nestjs-grpc-reflection": "^0.2.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
