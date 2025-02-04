@@ -20,11 +20,8 @@ export interface CouponIssue {
   businessContractId: string;
   deliveryAvailable: boolean;
   deliveryContactPhone: string;
-  /** ✅ Language-specific value only (not an object) */
   title: string;
-  /** ✅ Language-specific image URL (not an object) */
   image: string;
-  /** ✅ Language-specific file URL (not an object) */
   descriptionFile: string;
   activeAt: string;
   endAt: string;
@@ -50,7 +47,6 @@ export interface CouponIssue {
   lastIncrId: number;
   nextCodeIncrId: number;
   RawPath: string;
-  /** ✅ Language-specific restrictions (not an object) */
   restrictions: string;
   id: string;
   methodsOfRedemption: string[];
@@ -151,6 +147,31 @@ export interface WalletBalanceResponse {
   type: number;
 }
 
+export interface ActiveDrawnResponse {
+  id: string;
+  contractId: string;
+  businessId: string;
+  type: string;
+  subtype: string;
+  currency: string;
+  title: string;
+  openAt: string;
+  predrawStartAt: string;
+  drawStartAt: string;
+  contestsStartAt: string;
+  descriptionFile: string;
+  logo: string;
+  amountOfNumbersByParticipant: number;
+  grandDrawFreeTicketSpendingsAmount?: number | undefined;
+  drawNumbersCount: number;
+  participantsCount: number;
+  amountOfChosenNumbers: number;
+  totalPrizesValue: number;
+  totalPrizesAmount: number;
+  createdAt: string;
+  status: string;
+}
+
 export const COUPON_PACKAGE_NAME = "coupon";
 
 export interface CouponStreamServiceClient {
@@ -165,6 +186,8 @@ export interface CouponStreamServiceClient {
   activeCouponIssuesWithBusinessesStream(request: LanguageFilter): Observable<CouponIssueWithBusiness>;
 
   walletStream(request: UserFilter): Observable<WalletBalanceResponse>;
+
+  streamActiveDrawn(request: LanguageFilter): Observable<ActiveDrawnResponse>;
 }
 
 export interface CouponStreamServiceController {
@@ -179,6 +202,8 @@ export interface CouponStreamServiceController {
   activeCouponIssuesWithBusinessesStream(request: LanguageFilter): Observable<CouponIssueWithBusiness>;
 
   walletStream(request: UserFilter): Observable<WalletBalanceResponse>;
+
+  streamActiveDrawn(request: LanguageFilter): Observable<ActiveDrawnResponse>;
 }
 
 export function CouponStreamServiceControllerMethods() {
@@ -190,6 +215,7 @@ export function CouponStreamServiceControllerMethods() {
       "streamMoreCouponRequests",
       "activeCouponIssuesWithBusinessesStream",
       "walletStream",
+      "streamActiveDrawn",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

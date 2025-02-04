@@ -20,6 +20,8 @@ service CouponStreamService {
 
 
   rpc WalletStream(UserFilter) returns (stream WalletBalanceResponse);
+
+  rpc StreamActiveDrawn(LanguageFilter) returns (stream ActiveDrawnResponse);
 }
 
 //NOTE: List of statuses to filter, e.g., 'active', 'suspended', 'ended'
@@ -65,7 +67,7 @@ message CouponIssue {
   int32 lastIncrId = 30;
   int32 nextCodeIncrId = 31;
   string _rawPath = 32;
-  string restrictions = 33; // ✅ Language-specific restrictions (not an object)
+  string restrictions = 33;
   string id = 34;
   repeated string methodsOfRedemption = 35;
   int32 amountUsed = 36;
@@ -174,3 +176,34 @@ message WalletBalanceResponse {
   int32 type = 3;
 
 }
+
+
+
+message ActiveDrawnResponse {
+  string id = 1; 
+  string contract_id = 2;
+  string business_id = 3;
+  string type = 4;
+  string subtype = 5; 
+  string currency = 6; 
+  string title = 7; 
+  string open_at = 8; 
+  string predraw_start_at = 9; 
+  string draw_start_at = 10;
+  string contests_start_at = 11; 
+  string description_file = 12; 
+  string logo = 13;
+  int32 amount_of_numbers_by_participant = 14;
+  optional int32 grand_draw_free_ticket_spendings_amount = 15; 
+  int32 draw_numbers_count = 16; 
+  int32 participants_count = 17; 
+  int32 amount_of_chosen_numbers = 18; 
+  int32 total_prizes_value = 19; 
+  int32 total_prizes_amount = 20; 
+  string created_at = 21; 
+  string status = 22;
+}
+
+
+
+

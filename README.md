@@ -89,3 +89,9 @@
 
 
 
+protoc \
+  --plugin=./node_modules/.bin/protoc-gen-ts_proto \
+  --ts_proto_out=./src/generated \
+  --ts_proto_opt=nestJs=true \
+  --proto_path=./src/proto \
+  ./src/proto/*.proto

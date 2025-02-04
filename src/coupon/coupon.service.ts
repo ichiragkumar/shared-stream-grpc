@@ -8,9 +8,9 @@ import {
   CouponIssueWithBusiness,
   ActiveBusinessesStreamResponse,
   ActiveCouponStreamResponse,
-  Balance,
   LanguageFilter,
-  WalletBalanceResponse
+  WalletBalanceResponse,
+  ActiveDrawnResponse
 } from "../generated/coupon_stream"
 import { Db } from 'mongodb';
 import { DatabaseService } from 'src/config/database.config';
@@ -20,6 +20,7 @@ import { streamActiveCouponIssuesWithBusiness } from './streams/streamActiveCoup
 import { streamActiveBusinessesWithContractTypes } from './streams/streamActiveBusinessesWithContractTypes';
 import { streamActiveCouponsStream } from './streams/streamActiveCouponsStream';
 import {streamWalletBalance} from "./streams/streamWalletBalance"
+import { streamActiveDrawn } from './streams/streamActiveDrawn';
 
 
 
@@ -72,5 +73,11 @@ export class CouponService {
   streamWalletService(data: UserFilter): Observable<WalletBalanceResponse > {
     return streamWalletBalance(this.db, data);
   }
+
+  streamActiveDrawnService(data: LanguageFilter): Observable<ActiveDrawnResponse>{
+    return streamActiveDrawn(this.db, data);
+  }
+
+  
 
 }

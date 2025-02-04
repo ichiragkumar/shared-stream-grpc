@@ -12,7 +12,8 @@ import {
   ActiveCouponStreamResponse,
   Balance,
   LanguageFilter,
-  WalletBalanceResponse
+  WalletBalanceResponse,
+  ActiveDrawnResponse
 } from "../generated/coupon_stream";
 
 
@@ -53,6 +54,12 @@ export class CouponGrpcController {
   @GrpcMethod('CouponStreamService', 'WalletStream')
   streamWalletController(data: UserFilter): Observable<WalletBalanceResponse> {
     return this.couponService.streamWalletService(data);
+  }
+
+
+  @GrpcMethod("CouponStreamService", "StreamActiveDrawn")
+  StreamActiveDrawn(data:LanguageFilter): Observable<ActiveDrawnResponse> {
+    return this.couponService.streamActiveDrawnService(data)
   }
   
 
