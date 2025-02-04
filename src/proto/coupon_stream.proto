@@ -132,9 +132,9 @@ message ActiveCouponStreamResponse {
   string purchaseCurrency = 8;
   string userId = 9;
   string status = 10;
-  Timestamp expireAt = 11;
-  Timestamp createdAt = 12;
-  Timestamp purchasedAt = 13;
+  string expireAt = 11;
+  string createdAt = 12;
+  string purchasedAt = 13;
 }
 
 message CouponIssueWithBusiness {
@@ -166,10 +166,7 @@ message RedemptionInfo {
   string methodOfRedemption = 2;
 }
 
-message Timestamp {
-  int64 seconds = 1;
-  int32 nanos = 2;
-}
+
 
 
 message Balance {

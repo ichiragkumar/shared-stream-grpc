@@ -105,9 +105,9 @@ export interface ActiveCouponStreamResponse {
   purchaseCurrency: string;
   userId: string;
   status: string;
-  expireAt: Timestamp | undefined;
-  createdAt: Timestamp | undefined;
-  purchasedAt: Timestamp | undefined;
+  expireAt: string;
+  createdAt: string;
+  purchasedAt: string;
 }
 
 export interface CouponIssueWithBusiness {
@@ -136,11 +136,6 @@ export interface CouponIssueWithBusiness {
 export interface RedemptionInfo {
   redeemedByBusinessManagerId: string;
   methodOfRedemption: string;
-}
-
-export interface Timestamp {
-  seconds: number;
-  nanos: number;
 }
 
 export interface Balance {
@@ -184,7 +179,7 @@ export const COUPON_PACKAGE_NAME = "coupon";
 export interface CouponStreamServiceClient {
   streamCouponIssues(request: UserPrefrences): Observable<CouponIssue>;
 
-  streamActiveCoupons(request: User): Observable<ActiveCouponStreamResponse>;
+  streamActiveCoupons(request: EmptyRequest): Observable<ActiveCouponStreamResponse>;
 
   streamActiveBusinessesStream(request: UserPrefrences): Observable<ActiveBusinessesStreamResponse>;
 
@@ -200,7 +195,7 @@ export interface CouponStreamServiceClient {
 export interface CouponStreamServiceController {
   streamCouponIssues(request: UserPrefrences): Observable<CouponIssue>;
 
-  streamActiveCoupons(request: User): Observable<ActiveCouponStreamResponse>;
+  streamActiveCoupons(request: EmptyRequest): Observable<ActiveCouponStreamResponse>;
 
   streamActiveBusinessesStream(request: UserPrefrences): Observable<ActiveBusinessesStreamResponse>;
 

@@ -1,6 +1,7 @@
 import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
 import { User, ActiveCouponStreamResponse } from '../../generated/coupon_stream';
+import { USER_COUPON_STATUS } from 'src/config/constant';
 
 export function streamActiveCouponsStream(db: Db, data: User): Observable<ActiveCouponStreamResponse> {
   return new Observable(subscriber => {
@@ -8,11 +9,19 @@ export function streamActiveCouponsStream(db: Db, data: User): Observable<Active
 
     (async () => {
       try {
-        const userExists = await db.collection('userCoupons').findOne({ userId });
+
+        const filterCondition = {
+          userId, 
+          status: { $in: ['active', 'suspended', 'ended'] }, 
+          redeemedBySelfActivation: false 
+        };
+
+
+        const userExists = await db.collection('userCoupons').findOne(filterCondition);
         if (!userExists) {
           subscriber.next({
-            Id: '',
-            status: 'User does not exist',
+            Id: 'User ID Does not Exist',
+            status: 'No matching coupons',
             redemptionInfo:{
               redeemedByBusinessManagerId: '',
               methodOfRedemption: ''
@@ -24,23 +33,31 @@ export function streamActiveCouponsStream(db: Db, data: User): Observable<Active
             purchasePrice: 0,
             purchaseCurrency: '',
             userId,
-            expireAt: { seconds: 0, nanos: 0 },
-            createdAt: { seconds: 0, nanos: 0 },
-            purchasedAt: { seconds: 0, nanos: 0 }
+            expireAt:"",
+            createdAt:"",
+            purchasedAt:""
           });
           subscriber.complete();
           return;
         }
 
 
-        const initialDocuments = db.collection('userCoupons').find({ userId });
+        const initialDocuments = db.collection('userCoupons').find(filterCondition);
         for await (const doc of initialDocuments) {
           subscriber.next(mapToCouponIssue(doc));
         }
 
 
         const changeStream = db.collection('userCoupons').watch(
-          [{ $match: { 'fullDocument.userId': userId } }],
+          [
+            {
+              $match: {
+                'fullDocument.userId': userId,
+                'fullDocument.status': { $in: USER_COUPON_STATUS },
+                'fullDocument.redeemedBySelfActivation': false
+              }
+            }
+          ],
           { fullDocument: 'updateLookup' }
         );
 
@@ -55,10 +72,11 @@ export function streamActiveCouponsStream(db: Db, data: User): Observable<Active
           subscriber.error(error);
         });
 
-        return () => {
+
+        subscriber.add(() => {
           console.log('Cleaning up change stream');
           changeStream.close();
-        };
+        });
 
       } catch (error) {
         console.error('Error in streaming:', error);
@@ -67,7 +85,6 @@ export function streamActiveCouponsStream(db: Db, data: User): Observable<Active
     })();
   });
 }
-
 
 function mapToCouponIssue(doc: any): ActiveCouponStreamResponse {
   return {
@@ -81,8 +98,8 @@ function mapToCouponIssue(doc: any): ActiveCouponStreamResponse {
     purchaseCurrency: doc.purchaseCurrency,
     userId: doc.userId,
     status: doc.status,
-    expireAt: { seconds: doc.expireAt.getTime() / 1000, nanos: 0 },
-    createdAt: { seconds: doc.createdAt.getTime() / 1000, nanos: 0 }, 
-    purchasedAt: { seconds: doc.purchasedAt.getTime() / 1000, nanos: 0 }
+    expireAt: doc.expireAt,
+    createdAt: doc.createdAt,
+    purchasedAt: doc.purchasedAt
   };
 }
