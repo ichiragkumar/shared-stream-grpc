@@ -95,7 +95,7 @@ export interface ActiveBusinessesStreamResponse {
 }
 
 export interface ActiveCouponStreamResponse {
-  Id: string;
+  id: string;
   redemptionInfo: RedemptionInfo | undefined;
   code: string;
   businessId: string;
@@ -179,7 +179,7 @@ export const COUPON_PACKAGE_NAME = "coupon";
 export interface CouponStreamServiceClient {
   streamCouponIssues(request: UserPrefrences): Observable<CouponIssue>;
 
-  streamActiveCoupons(request: EmptyRequest): Observable<ActiveCouponStreamResponse>;
+  streamActiveCoupons(request: User): Observable<ActiveCouponStreamResponse>;
 
   streamActiveBusinessesStream(request: UserPrefrences): Observable<ActiveBusinessesStreamResponse>;
 
@@ -195,7 +195,7 @@ export interface CouponStreamServiceClient {
 export interface CouponStreamServiceController {
   streamCouponIssues(request: UserPrefrences): Observable<CouponIssue>;
 
-  streamActiveCoupons(request: EmptyRequest): Observable<ActiveCouponStreamResponse>;
+  streamActiveCoupons(request: User): Observable<ActiveCouponStreamResponse>;
 
   streamActiveBusinessesStream(request: UserPrefrences): Observable<ActiveBusinessesStreamResponse>;
 

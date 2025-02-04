@@ -122,7 +122,7 @@ message ActiveBusinessesStreamResponse {
 
 
 message ActiveCouponStreamResponse {
-  string _id = 1;
+  string id = 1;
   RedemptionInfo redemptionInfo = 2;
   string code = 3;
   string businessId = 4;

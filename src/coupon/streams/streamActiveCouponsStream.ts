@@ -7,20 +7,21 @@ export function streamActiveCouponsStream(db: Db, data: User): Observable<Active
   return new Observable(subscriber => {
     const { userId } = data;
 
+
     (async () => {
       try {
 
-        const filterCondition = {
+        const userCouponDocument = {
           userId, 
-          status: { $in: ['active', 'suspended', 'ended'] }, 
+          status: { $in: USER_COUPON_STATUS }, 
           redeemedBySelfActivation: false 
         };
 
 
-        const userExists = await db.collection('userCoupons').findOne(filterCondition);
+        const userExists = await db.collection('userCoupons').findOne(userCouponDocument);
         if (!userExists) {
           subscriber.next({
-            Id: 'User ID Does not Exist',
+            id: 'User ID Does not Exist',
             status: 'No matching coupons',
             redemptionInfo:{
               redeemedByBusinessManagerId: '',
@@ -42,7 +43,7 @@ export function streamActiveCouponsStream(db: Db, data: User): Observable<Active
         }
 
 
-        const initialDocuments = db.collection('userCoupons').find(filterCondition);
+        const initialDocuments = db.collection('userCoupons').find(userCouponDocument);
         for await (const doc of initialDocuments) {
           subscriber.next(mapToCouponIssue(doc));
         }
@@ -88,7 +89,7 @@ export function streamActiveCouponsStream(db: Db, data: User): Observable<Active
 
 function mapToCouponIssue(doc: any): ActiveCouponStreamResponse {
   return {
-    Id: doc._id?.toString(),
+    id: doc._id?.toString(),
     redemptionInfo: doc.redemptionInfo || null,
     code: doc.code,
     businessId: doc.businessId,
