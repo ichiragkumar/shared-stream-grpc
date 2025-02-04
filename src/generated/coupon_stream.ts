@@ -64,8 +64,9 @@ export interface User {
   userId: string;
 }
 
-export interface LanguageFilter {
+export interface UserPrefrences {
   languageCode?: string | undefined;
+  brightness?: string | undefined;
 }
 
 export interface MoreCouponRequest {
@@ -88,6 +89,10 @@ export interface ActiveBusinessesStreamResponse {
   businessId: string;
   contractType: string;
   streamType: number;
+  logo: string;
+  createdAt: string;
+  sponsorshipType: string;
+  suspended: boolean;
 }
 
 export interface ActiveCouponStreamResponse {
@@ -178,35 +183,35 @@ export interface ActiveDrawnResponse {
 export const COUPON_PACKAGE_NAME = "coupon";
 
 export interface CouponStreamServiceClient {
-  streamCouponIssues(request: LanguageFilter): Observable<CouponIssue>;
+  streamCouponIssues(request: UserPrefrences): Observable<CouponIssue>;
 
   streamActiveCoupons(request: User): Observable<ActiveCouponStreamResponse>;
 
-  streamActiveBusinessesStream(request: LanguageFilter): Observable<ActiveBusinessesStreamResponse>;
+  streamActiveBusinessesStream(request: UserPrefrences): Observable<ActiveBusinessesStreamResponse>;
 
   streamMoreCouponRequests(request: User): Observable<MoreCouponRequest>;
 
-  activeCouponIssuesWithBusinessesStream(request: LanguageFilter): Observable<CouponIssueWithBusiness>;
+  activeCouponIssuesWithBusinessesStream(request: UserPrefrences): Observable<CouponIssueWithBusiness>;
 
   walletStream(request: User): Observable<WalletBalanceResponse>;
 
-  streamActiveDrawn(request: LanguageFilter): Observable<ActiveDrawnResponse>;
+  streamActiveDrawn(request: UserPrefrences): Observable<ActiveDrawnResponse>;
 }
 
 export interface CouponStreamServiceController {
-  streamCouponIssues(request: LanguageFilter): Observable<CouponIssue>;
+  streamCouponIssues(request: UserPrefrences): Observable<CouponIssue>;
 
   streamActiveCoupons(request: User): Observable<ActiveCouponStreamResponse>;
 
-  streamActiveBusinessesStream(request: LanguageFilter): Observable<ActiveBusinessesStreamResponse>;
+  streamActiveBusinessesStream(request: UserPrefrences): Observable<ActiveBusinessesStreamResponse>;
 
   streamMoreCouponRequests(request: User): Observable<MoreCouponRequest>;
 
-  activeCouponIssuesWithBusinessesStream(request: LanguageFilter): Observable<CouponIssueWithBusiness>;
+  activeCouponIssuesWithBusinessesStream(request: UserPrefrences): Observable<CouponIssueWithBusiness>;
 
   walletStream(request: User): Observable<WalletBalanceResponse>;
 
-  streamActiveDrawn(request: LanguageFilter): Observable<ActiveDrawnResponse>;
+  streamActiveDrawn(request: UserPrefrences): Observable<ActiveDrawnResponse>;
 }
 
 export function CouponStreamServiceControllerMethods() {

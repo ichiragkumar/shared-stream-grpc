@@ -1,14 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { 
-  StatusFilter, 
   CouponIssue, 
-  UserFilter,
   MoreCouponRequest,
   CouponIssueWithBusiness,
   ActiveBusinessesStreamResponse,
   ActiveCouponStreamResponse,
-  LanguageFilter,
+  UserPrefrences,
   WalletBalanceResponse,
   ActiveDrawnResponse,
   User
@@ -49,7 +47,7 @@ export class CouponService {
     this.db = await DatabaseService.connect();
   }
 
-  streamCouponIssuesService(data: LanguageFilter): Observable<CouponIssue> {
+  streamCouponIssuesService(data: UserPrefrences): Observable<CouponIssue> {
     return streamCouponIssues(data, this.db);
   }
 
@@ -59,12 +57,12 @@ export class CouponService {
 
   
 
-  streamActiveCouponIssuesWithBusinessService(data: LanguageFilter): Observable<CouponIssueWithBusiness> {
+  streamActiveCouponIssuesWithBusinessService(data: UserPrefrences): Observable<CouponIssueWithBusiness> {
     return streamActiveCouponIssuesWithBusiness(this.db, data);
 }
 
 
-  streamActiveBusinessesWithContractTypesService(data: LanguageFilter): Observable<ActiveBusinessesStreamResponse> {
+  streamActiveBusinessesWithContractTypesService(data: UserPrefrences): Observable<ActiveBusinessesStreamResponse> {
     return streamActiveBusinessesWithContractTypes(data, this.db);
   }
 
@@ -76,7 +74,7 @@ export class CouponService {
     return streamWalletBalance(this.db, data);
   }
 
-  streamActiveDrawnService(data: LanguageFilter): Observable<ActiveDrawnResponse>{
+  streamActiveDrawnService(data: UserPrefrences): Observable<ActiveDrawnResponse>{
     return streamActiveDrawn(this.db, data);
   }
 

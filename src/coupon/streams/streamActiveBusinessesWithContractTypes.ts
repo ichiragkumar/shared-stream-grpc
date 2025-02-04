@@ -1,30 +1,29 @@
 import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
-import { ActiveBusinessesStreamResponse, LanguageFilter } from '../../generated/coupon_stream';
+import { ActiveBusinessesStreamResponse, UserPrefrences } from '../../generated/coupon_stream';
 import { STREAM_TYPE } from 'src/types';
+import { DEFAUlT_SETTINGS, validContractTypes } from 'src/config/constant';
 
-
-let streamType: STREAM_TYPE;  
 export function streamActiveBusinessesWithContractTypes(
-  languageFilter: LanguageFilter,
+  languageFilter: UserPrefrences,
   db: Db
 ): Observable<ActiveBusinessesStreamResponse> {
   return new Observable(subscriber => {
-    const languageCode = languageFilter?.languageCode || 'en';
+    const languageCode = languageFilter?.languageCode || DEFAUlT_SETTINGS.LANGUAGE_CODE;
+    const brightness = languageFilter?.brightness || DEFAUlT_SETTINGS.BRIGHTNESS;
 
+    (async () => {
+      try {
+        const initialDocuments = await db.collection('businesses').find({ contractTypes: { $in: validContractTypes } }).toArray();
+        for (const doc of initialDocuments) {
+          subscriber.next(mapBusiness(doc, languageCode, brightness, STREAM_TYPE.BASE));
+        }
 
-    db.collection('businesses')
-      .find({ contractTypes: { $in: ['vendor', 'advertiser', 'sponsor', 'specialIssue', 'business', 'voucher'] } })
-      .forEach(doc => {
-        const response = mapBusiness(doc, languageCode, STREAM_TYPE.BASE);
-        subscriber.next(response);
-      })
-      .then(() => {
         const changeStream = db.collection('businesses').watch(
           [
             {
               $match: {
-                'fullDocument.contractTypes': { $in: ['vendor', 'advertiser', 'sponsor', 'specialIssue', 'business', 'voucher'] },
+                'fullDocument.contractTypes': { $in: validContractTypes },
               },
             },
           ],
@@ -46,8 +45,7 @@ export function streamActiveBusinessesWithContractTypes(
               return;
           }
 
-          const response = mapBusiness(change.fullDocument, languageCode, streamType);
-          subscriber.next(response);
+          subscriber.next(mapBusiness(change.fullDocument, languageCode, brightness, streamType));
         });
 
         changeStream.on('error', error => {
@@ -55,27 +53,32 @@ export function streamActiveBusinessesWithContractTypes(
           subscriber.error(error);
         });
 
-        return () => {
+        subscriber.add(() => {
           console.log('Cleaning up change stream');
           changeStream.close();
-        };
-      })
-      .catch(error => {
+        });
+
+      } catch (error) {
         console.error('Error fetching initial data:', error);
         subscriber.error(error);
-      });
+      }
+    })();
   });
 }
 
-function mapBusiness(doc: any, languageCode: string, streamType: STREAM_TYPE): ActiveBusinessesStreamResponse {
+function mapBusiness(doc: any, languageCode: string, brightness: string, streamType: STREAM_TYPE): ActiveBusinessesStreamResponse {
   return {
     id: doc._id.toString(),
-    title: doc.title?.[languageCode] || doc.title?.['en'] || 'Unknown Title',
-    description: doc.description?.[languageCode] || doc.description?.['en'] || 'No Description',
-    image: doc.logo?.light?.[languageCode] || doc.logo?.light?.['en'] || null,
+    title: doc.title?.[languageCode] || doc.title?.en || 'Unknown Title',
+    description: doc.description?.[languageCode] || doc.description?.en || 'No Description',
+    image: doc.images || '',
     categories: doc.categories || [],
     businessId: doc._id.toString(),
-    contractType: doc.contractTypes.join(', '),
+    contractType: Array.isArray(doc.contractTypes) ? doc.contractTypes.join(', ') : '',
+    logo: doc.logo?.[brightness]?.[languageCode] || doc.logo?.[brightness]?.['en'] || doc.logo?.[brightness]?.['Unknown Logo'] || doc.logo?.light?.[languageCode] || doc.logo?.light?.['en'] || doc.logo?.light?.['Unknown Logo'] || doc.logo?.dark?.[languageCode] || doc.logo?.dark?.['en'] || doc.logo?.dark?.['Unknown Logo'] || '',
+    createdAt: doc.createdAt,
+    sponsorshipType: doc.sponsorshipType || '',
+    suspended: doc.suspended,
     streamType: streamType,
   };
 }

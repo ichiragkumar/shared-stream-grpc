@@ -11,7 +11,7 @@ import {
   ActiveBusinessesStreamResponse,
   ActiveCouponStreamResponse,
   Balance,
-  LanguageFilter,
+  UserPrefrences,
   WalletBalanceResponse,
   ActiveDrawnResponse,
   User
@@ -25,19 +25,19 @@ export class CouponGrpcController {
   constructor(private readonly couponService: CouponService) {}
 
   @GrpcMethod('CouponStreamService', 'StreamCouponIssues')
-  StreamCouponIssues(data: LanguageFilter): Observable<CouponIssue> {
+  StreamCouponIssues(data: UserPrefrences): Observable<CouponIssue> {
     return this.couponService.streamCouponIssuesService(data);
   }
 
   
   @GrpcMethod('CouponStreamService', 'ActiveCouponIssuesWithBusinessesStream')
-  ActiveCouponIssuesWithBusinessesStream(data: LanguageFilter): Observable<CouponIssueWithBusiness> {
+  ActiveCouponIssuesWithBusinessesStream(data: UserPrefrences): Observable<CouponIssueWithBusiness> {
     return this.couponService.streamActiveCouponIssuesWithBusinessService(data);
   }
 
 
   @GrpcMethod('CouponStreamService', 'StreamActiveBusinessesStream')
-  streamActiveBusinessesStream(data: LanguageFilter): Observable<ActiveBusinessesStreamResponse> {
+  streamActiveBusinessesStream(data: UserPrefrences): Observable<ActiveBusinessesStreamResponse> {
     return this.couponService.streamActiveBusinessesWithContractTypesService(data);
   }
 
@@ -59,7 +59,7 @@ export class CouponGrpcController {
 
 
   @GrpcMethod("CouponStreamService", "StreamActiveDrawn")
-  StreamActiveDrawn(data:LanguageFilter): Observable<ActiveDrawnResponse> {
+  StreamActiveDrawn(data:UserPrefrences): Observable<ActiveDrawnResponse> {
     return this.couponService.streamActiveDrawnService(data)
   }
   

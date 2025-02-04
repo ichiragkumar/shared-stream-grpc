@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
-import { CouponIssueWithBusiness, LanguageFilter } from 'src/generated/coupon_stream';
+import { CouponIssueWithBusiness, UserPrefrences } from 'src/generated/coupon_stream';
 import { safeParseDate, STREAM_TYPE } from 'src/types';
 import { DEFAULT_COUPON_ISSUE_WITH_BUSINESS } from 'src/config/constant';
 
@@ -35,7 +35,7 @@ const mapToCouponIssue = (document: any, languageCode: string): CouponIssueWithB
   };
 };
 
-export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: LanguageFilter): Observable<CouponIssueWithBusiness> {
+export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: UserPrefrences): Observable<CouponIssueWithBusiness> {
   return new Observable(subscriber => {
     (async () => {
       try {

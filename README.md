@@ -94,4 +94,4 @@ protoc \
   --ts_proto_out=./src/generated \
   --ts_proto_opt=nestJs=true \
   --proto_path=./src/proto \
-  ./src/proto/*.proto
+  ./src/proto/coupon_stream.proto

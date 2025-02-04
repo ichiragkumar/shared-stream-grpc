@@ -1,10 +1,10 @@
 import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
-import { CouponIssue, LanguageFilter } from '../../generated/coupon_stream';
+import { CouponIssue, UserPrefrences } from '../../generated/coupon_stream';
 import { STREAM_TYPE } from 'src/types';
 
 export function streamCouponIssues(
-  languageFilter: LanguageFilter,
+  languageFilter: UserPrefrences,
   db: Db
 ): Observable<CouponIssue> {
   return new Observable((subscriber) => {

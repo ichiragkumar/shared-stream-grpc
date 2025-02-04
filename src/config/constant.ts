@@ -26,3 +26,12 @@ export const DEFAULT_COUPON_ISSUE_WITH_BUSINESS = {
   arrangement: 0,
   streamtype: 0
 };
+
+
+export const DEFAUlT_SETTINGS = {
+  LANGUAGE_CODE: 'en',
+  BRIGHTNESS: 'light'
+};
+
+export const validContractTypes = ['vendor', 'advertiser', 'sponsor', 'specialIssue', 'business', 'voucher'];
+

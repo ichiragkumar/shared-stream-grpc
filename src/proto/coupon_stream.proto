@@ -7,21 +7,21 @@ package coupon;
 
 service CouponStreamService {
 
-  rpc StreamCouponIssues(LanguageFilter) returns (stream CouponIssue);
+  rpc StreamCouponIssues(UserPrefrences) returns (stream CouponIssue);
 
   rpc StreamActiveCoupons(User) returns (stream ActiveCouponStreamResponse);
 
-  rpc StreamActiveBusinessesStream(LanguageFilter) returns (stream ActiveBusinessesStreamResponse);
+  rpc StreamActiveBusinessesStream(UserPrefrences) returns (stream ActiveBusinessesStreamResponse);
 
   rpc StreamMoreCouponRequests(User) returns (stream MoreCouponRequest);
 
 
-  rpc ActiveCouponIssuesWithBusinessesStream(LanguageFilter) returns (stream CouponIssueWithBusiness);
+  rpc ActiveCouponIssuesWithBusinessesStream(UserPrefrences) returns (stream CouponIssueWithBusiness);
 
 
   rpc WalletStream(User) returns (stream WalletBalanceResponse);
 
-  rpc StreamActiveDrawn(LanguageFilter) returns (stream ActiveDrawnResponse);
+  rpc StreamActiveDrawn(UserPrefrences) returns (stream ActiveDrawnResponse);
 }
 
 //NOTE: List of statuses to filter, e.g., 'active', 'suspended', 'ended'
@@ -84,8 +84,9 @@ message UserFilter {
 message User{
   string userId = 1;
 }
-message LanguageFilter {
+message UserPrefrences {
  optional string languageCode = 1;
+ optional string brightness = 2;
 }
 
 
@@ -105,14 +106,19 @@ message EmptyRequest {
 
 
 message ActiveBusinessesStreamResponse {
-  string   id = 1;
-  string   title = 2;
-  string   description = 3;
-  string   image = 4;
-  repeated string categories = 5;
-  string   businessId = 6;
-  string   contractType = 7;
-  int32 streamType = 8;
+  string   id = 1;               
+  string   title = 2;             
+  string   description = 3;       
+  string   image = 4;             
+  repeated string categories = 5; 
+  string   businessId = 6;        
+  string   contractType = 7;      
+  int32    streamType = 8;        
+  string   logo = 9;              
+  string   createdAt = 10;        
+  string   sponsorshipType = 11;  
+  bool     suspended = 12;        
+           
 }
 
 
