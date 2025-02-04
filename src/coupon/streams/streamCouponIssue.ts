@@ -2,25 +2,35 @@ import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
 import { CouponIssue, UserPrefrences } from '../../generated/coupon_stream';
 import { STREAM_TYPE } from 'src/types';
+import { DEFAUlT_SETTINGS, VALID_STATUS } from 'src/config/constant';
 
 export function streamCouponIssues(
-  languageFilter: UserPrefrences,
+  userPrefrences: UserPrefrences,
   db: Db
 ): Observable<CouponIssue> {
   return new Observable((subscriber) => {
-    const languageCode = languageFilter?.languageCode || 'en';
+    const languageCode = userPrefrences?.languageCode || DEFAUlT_SETTINGS.LANGUAGE_CODE;
+    const brightness = userPrefrences?.brightness || DEFAUlT_SETTINGS.BRIGHTNESS;
+
+    (async () => {
+      try {
+
+        const initialDocuments = db
+          .collection('couponIssues')
+          .find({ status: { $in: VALID_STATUS } });
+
+        for await (const doc of initialDocuments) {
+          subscriber.next(mapCouponIssue(doc, languageCode, brightness, STREAM_TYPE.BASE));
+        }
 
 
-    db.collection('couponIssues')
-      .find({ status: { $in: ['active', 'suspended', 'ended'] } })
-      .forEach((doc) => {
-        const couponIssue = mapCouponIssue(doc, languageCode, STREAM_TYPE.BASE);
-        subscriber.next(couponIssue);
-      })
-      .then(() => {
         const changeStream = db.collection('couponIssues').watch(
           [
-            {$match: { }},
+            {
+              $match: {
+                'fullDocument.status': { $in: ['active', 'suspended', 'ended'] },
+              },
+            },
           ],
           { fullDocument: 'updateLookup' }
         );
@@ -40,42 +50,36 @@ export function streamCouponIssues(
               return;
           }
 
-          const couponIssue = mapCouponIssue(
-            change.fullDocument,
-            languageCode,
-            streamType
-          );
-          subscriber.next(couponIssue);
+          subscriber.next(mapCouponIssue(change.fullDocument, languageCode, brightness, streamType));
         });
 
         changeStream.on('error', (error: any) => {
           console.error('Change stream error:', error);
           subscriber.error(error);
         });
-
-        return () => {
+        subscriber.add(() => {
           console.log('Cleaning up change stream');
           changeStream.close();
-        };
-      })
-      .catch((error) => {
-        console.error('Error fetching initial data:', error);
+        });
+
+      } catch (error) {
+        console.error('Error fetching or streaming data:', error);
         subscriber.error(error);
-      });
+      }
+    })();
   });
 }
 
-function mapCouponIssue(doc: any, languageCode: string, streamType: STREAM_TYPE): CouponIssue {
+function mapCouponIssue(doc: any, languageCode: string, brightness: string, streamType: STREAM_TYPE): CouponIssue {
   return {
-    Id: doc._id.toString(),
+    id: doc._id ? doc._id.toString() : '', 
     drawId: doc.drawId,
     businessContractId: doc.businessContractId,
     deliveryAvailable: doc.deliveryAvailable,
     deliveryContactPhone: doc.deliveryContactPhone,
 
-
     title: doc.title?.[languageCode] || doc.title?.['en'] || 'Unknown',
-    image: doc.image?.light?.[languageCode] || doc.image?.light?.['en'] || '',
+    image: doc.image?.[brightness]?.[languageCode] || doc.image?.[brightness]?.['en'] || '',
     descriptionFile: doc.descriptionFile?.[languageCode] || doc.descriptionFile?.['en'] || '',
 
     activeAt: doc.activeAt,
@@ -103,7 +107,6 @@ function mapCouponIssue(doc: any, languageCode: string, streamType: STREAM_TYPE)
     lastIncrId: doc.lastIncrId,
     nextCodeIncrId: doc.nextCodeIncrId,
     RawPath: doc._rawPath,
-    id:doc.id,
     restrictions: doc.restrictions?.[languageCode] || doc.restrictions?.['en'] || '',
     methodsOfRedemption: doc.methodsOfRedemption,
     amountUsed: doc.amountUsed,

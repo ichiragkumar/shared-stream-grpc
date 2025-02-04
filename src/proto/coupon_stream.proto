@@ -35,7 +35,7 @@ message StatusFilter {
 
 
 message CouponIssue {
-  string _id = 1;
+  string id = 1;
   string drawId = 2;
   string businessContractId = 3;
   bool deliveryAvailable = 4;
@@ -49,10 +49,10 @@ message CouponIssue {
   repeated string zoneIds = 12;
   int32 initialAmount = 13;
   string currency = 14;
-  int32 purchasePriceAmount = 15;
+  double purchasePriceAmount = 15;
   int32 discountAmount = 16;
-  int32 sellPriceAmount = 17;
-  int32 ticketPriceAmount = 18;
+  double sellPriceAmount = 17;
+  double ticketPriceAmount = 18;
   int32 grandDrawMultiplier = 19;
   string couponsSource = 20;
   string couponsCsvPath = 21;
@@ -68,12 +68,11 @@ message CouponIssue {
   int32 nextCodeIncrId = 31;
   string _rawPath = 32;
   string restrictions = 33;
-  string id = 34;
-  repeated string methodsOfRedemption = 35;
-  int32 amountUsed = 36;
-  int32 amountSold = 37;
-  int32 streamtype = 38;
-  string status = 39;
+  repeated string methodsOfRedemption = 34;
+  int32 amountUsed = 35;
+  int32 amountSold = 36;
+  int32 streamtype = 37;
+  string status = 38;
 }
 
 
@@ -174,8 +173,8 @@ message Timestamp {
 
 
 message Balance {
-  int64 USD = 1;
-  int64 EGP = 2;
+  double USD = 1;
+  double EGP = 2;
 }
 
 message WalletBalanceResponse {

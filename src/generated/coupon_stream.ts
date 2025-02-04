@@ -15,7 +15,7 @@ export interface StatusFilter {
 }
 
 export interface CouponIssue {
-  Id: string;
+  id: string;
   drawId: string;
   businessContractId: string;
   deliveryAvailable: boolean;
@@ -48,7 +48,6 @@ export interface CouponIssue {
   nextCodeIncrId: number;
   RawPath: string;
   restrictions: string;
-  id: string;
   methodsOfRedemption: string[];
   amountUsed: number;
   amountSold: number;
