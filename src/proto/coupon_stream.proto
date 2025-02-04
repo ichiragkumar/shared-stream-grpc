@@ -93,7 +93,7 @@ message MoreCouponRequest {
   string id = 1;           
   string userId = 2;       
   string couponIssueId = 3; 
-  int64 createdAt = 4;      
+  int64  createdAt = 4;      
   string parentId = 5;   
 }
 

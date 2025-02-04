@@ -8,17 +8,17 @@ export function streamWalletBalance(db: Db, data: User): Observable<WalletBalanc
     const { userId } = data;
     (async () => {
       try {
-        const walletDoc = await db.collection('wallets').findOne({ userId });
+        const userWalletDocument = await db.collection('wallets').findOne({ userId });
 
-        if (!walletDoc) {
+        if (!userWalletDocument) {
           subscriber.next({
             availableBalances: { USD: 0, EGP: 0 },
             blockedBalances: { USD: 0, EGP: 0 },
             type: STREAM_TYPE.BASE,
           });
         } else {
-          const availableBalances: Balance = walletDoc.availableBalances || { USD: 0, EGP: 0 };
-          const blockedBalances: Balance = walletDoc.blockedBalances || { USD: 0, EGP: 0 };
+          const availableBalances: Balance = userWalletDocument.availableBalances || { USD: 0, EGP: 0 };
+          const blockedBalances: Balance = userWalletDocument.blockedBalances || { USD: 0, EGP: 0 };
 
           subscriber.next({
             availableBalances,
