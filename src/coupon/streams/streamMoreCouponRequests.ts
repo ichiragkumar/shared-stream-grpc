@@ -1,62 +1,98 @@
 import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
-import { MoreCouponRequest, User, UserFilter } from '../../generated/coupon_stream';
+import {
+  MoreCouponRequest,
+  User,
+} from '../../generated/coupon_stream';
 
-export function streamMoreCouponRequestsService(data: User, db: Db): Observable<MoreCouponRequest> {
-  return new Observable<MoreCouponRequest>(subscriber => {
+export function streamMoreCouponRequestsService(
+  db: Db,
+  data: User,
+): Observable<MoreCouponRequest> {
+  return new Observable<MoreCouponRequest>((subscriber) => {
     const { userId } = data;
 
-    if (!userId) {
-      subscriber.error(new Error('Invalid request: userId is required.'));
-      return;
-    }
+    (async () => {
+      try {
+        const userExists = await db
+          .collection('moreCouponsRequests')
+          .findOne({ userId });
 
-    db.collection('moreCouponsRequests').findOne({ userId })
-      .then(userExists => {
         if (!userExists) {
-          subscriber.error(new Error(`No more coupon requests found for the given userId: ${userId}`));
+          subscriber.next({
+            id: '',
+            userId,
+            couponIssueId: '',
+            createdAt: 0,
+            parentId: '',
+          });
+          subscriber.complete();
           return;
         }
 
-        const changeStream = db.collection('moreCouponsRequests').watch(
-          [
-            {
-              $match: {
-                'fullDocument.userId': userId,
-              },
-            },
-          ],
-          { fullDocument: 'updateLookup' }
-        );
+        const initialDocuments = db
+          .collection('moreCouponsRequests')
+          .find({ userId });
+        for await (const document of initialDocuments) {
+          subscriber.next({
+            id: document._id.toString(),
+            userId: document.userId,
+            couponIssueId: document.couponIssueId,
+            createdAt: new Date(document.createdAt).getTime(),
+            parentId: document.parentId || '',
+          });
+        }
 
-        changeStream.on('change', (change: any) => {
-          if (change.fullDocument) {
-            const { _id, userId, couponIssueId, createdAt, _parentId } = change.fullDocument;
+        db.collection('moreCouponsRequests')
+          .findOne({ userId })
+          .then((userExists) => {
+            const changeStream = db.collection('moreCouponsRequests').watch(
+              [
+                {
+                  $match: {
+                    'fullDocument.userId': userId,
+                  },
+                },
+              ],
+              { fullDocument: 'updateLookup' },
+            );
 
-            const moreCouponRequest: MoreCouponRequest = {
-              id: _id.toString(),
-              userId,
-              couponIssueId,
-              createdAt: new Date(createdAt).getTime(),
-              parentId: _parentId,
+            changeStream.on('change', (change: any) => {
+              if (change.fullDocument) {
+                const { _id, userId, couponIssueId, createdAt, _parentId } =
+                  change.fullDocument;
+
+                const moreCouponRequest: MoreCouponRequest = {
+                  id: _id.toString(),
+                  userId,
+                  couponIssueId,
+                  createdAt: new Date(createdAt).getTime(),
+                  parentId: _parentId,
+                };
+
+                subscriber.next(moreCouponRequest);
+              }
+            });
+
+            changeStream.on('error', (err: any) => {
+              console.error('Change stream error:', err);
+              subscriber.error(
+                new Error('An error occurred while streaming changes.'),
+              );
+            });
+
+            return () => {
+              console.log('Cleaning up change stream');
+              changeStream.close();
             };
-
-            subscriber.next(moreCouponRequest);
-          }
-        });
-
-        changeStream.on('error', (err: any) => {
-          console.error('Change stream error:', err);
-          subscriber.error(new Error('An error occurred while streaming changes.'));
-        });
-
-        return () => {
-          console.log('Cleaning up change stream');
-          changeStream.close();
-        };
-      })
-      .catch(err => {
-        subscriber.error(err);
-      });
+          })
+          .catch((err) => {
+            subscriber.error(err);
+          });
+      } catch (error) {
+        console.error('Error in streaming:', error);
+        subscriber.error(error);
+      }
+    })();
   });
 }

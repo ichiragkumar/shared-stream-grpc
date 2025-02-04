@@ -13,7 +13,7 @@ service CouponStreamService {
 
   rpc StreamActiveBusinessesStream(LanguageFilter) returns (stream ActiveBusinessesStreamResponse);
 
-  rpc StreamMoreCouponRequests(UserFilter) returns (stream MoreCouponRequest);
+  rpc StreamMoreCouponRequests(User) returns (stream MoreCouponRequest);
 
 
   rpc ActiveCouponIssuesWithBusinessesStream(LanguageFilter) returns (stream CouponIssueWithBusiness);

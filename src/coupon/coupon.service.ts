@@ -16,12 +16,13 @@ import {
 import { Db } from 'mongodb';
 import { DatabaseService } from 'src/config/database.config';
 import { streamCouponIssues } from './streams/streamCouponIssue';
-import { streamMoreCouponRequestsService } from './streams/streamMoreCouponRequests';
 import { streamActiveCouponIssuesWithBusiness } from './streams/streamActiveCouponIssuesWithBusiness';
 import { streamActiveBusinessesWithContractTypes } from './streams/streamActiveBusinessesWithContractTypes';
-import { streamActiveCouponsStream } from './streams/streamActiveCouponsStream';
 import {streamWalletBalance} from "./streams/streamWalletBalance"
 import { streamActiveDrawn } from './streams/streamActiveDrawn';
+import { streamMoreCouponRequestsService } from './streams/streamMoreCouponRequests';
+import { streamActiveCouponsStream } from './streams/streamActiveCouponsStream';
+
 
 
 
@@ -53,7 +54,7 @@ export class CouponService {
   }
 
   streamMoreCouponRequestsService(data: User): Observable<MoreCouponRequest> {
-    return streamMoreCouponRequestsService(data, this.db);
+    return streamMoreCouponRequestsService( this.db, data);
   }
 
   

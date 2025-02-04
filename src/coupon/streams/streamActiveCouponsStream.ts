@@ -9,7 +9,6 @@ export function streamActiveCouponsStream(db: Db, data: User): Observable<Active
     (async () => {
       try {
         const userExists = await db.collection('userCoupons').findOne({ userId });
-
         if (!userExists) {
           subscriber.next({
             Id: '',
@@ -29,6 +28,8 @@ export function streamActiveCouponsStream(db: Db, data: User): Observable<Active
             createdAt: { seconds: 0, nanos: 0 },
             purchasedAt: { seconds: 0, nanos: 0 }
           });
+          subscriber.complete();
+          return;
         }
 
 

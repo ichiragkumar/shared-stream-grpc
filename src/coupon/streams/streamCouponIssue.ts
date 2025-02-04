@@ -20,11 +20,7 @@ export function streamCouponIssues(
       .then(() => {
         const changeStream = db.collection('couponIssues').watch(
           [
-            {
-              $match: {
-                'fullDocument.status': { $in: ['active', 'suspended', 'ended'] },
-              },
-            },
+            {$match: { }},
           ],
           { fullDocument: 'updateLookup' }
         );

@@ -184,7 +184,7 @@ export interface CouponStreamServiceClient {
 
   streamActiveBusinessesStream(request: LanguageFilter): Observable<ActiveBusinessesStreamResponse>;
 
-  streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
+  streamMoreCouponRequests(request: User): Observable<MoreCouponRequest>;
 
   activeCouponIssuesWithBusinessesStream(request: LanguageFilter): Observable<CouponIssueWithBusiness>;
 
@@ -200,7 +200,7 @@ export interface CouponStreamServiceController {
 
   streamActiveBusinessesStream(request: LanguageFilter): Observable<ActiveBusinessesStreamResponse>;
 
-  streamMoreCouponRequests(request: UserFilter): Observable<MoreCouponRequest>;
+  streamMoreCouponRequests(request: User): Observable<MoreCouponRequest>;
 
   activeCouponIssuesWithBusinessesStream(request: LanguageFilter): Observable<CouponIssueWithBusiness>;
 

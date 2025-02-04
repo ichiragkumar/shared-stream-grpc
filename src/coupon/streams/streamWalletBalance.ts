@@ -10,6 +10,8 @@ export function streamWalletBalance(db: Db, data:User): Observable<WalletBalance
         const availableBalances: Balance = doc?.availableBalances || { USD: 0, EGP: 0 };
         const blockedBalances: Balance = doc?.blockedBalances || { USD: 0, EGP: 0 };
 
+        
+
         subscriber.next({ availableBalances, blockedBalances, type: STREAM_TYPE.BASE });
       })
       .catch((error) => {
