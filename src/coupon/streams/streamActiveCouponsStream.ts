@@ -11,9 +11,24 @@ export function streamActiveCouponsStream(db: Db, data: User): Observable<Active
         const userExists = await db.collection('userCoupons').findOne({ userId });
 
         if (!userExists) {
-          console.log('User does not exist');
-          subscriber.error(new Error('User does not exist'));
-          return;
+          subscriber.next({
+            Id: '',
+            status: 'User does not exist',
+            redemptionInfo:{
+              redeemedByBusinessManagerId: '',
+              methodOfRedemption: ''
+            },
+            code: '',
+            businessId: '',
+            couponIssueId: '',
+            redeemedBySelfActivation: false,
+            purchasePrice: 0,
+            purchaseCurrency: '',
+            userId,
+            expireAt: { seconds: 0, nanos: 0 },
+            createdAt: { seconds: 0, nanos: 0 },
+            purchasedAt: { seconds: 0, nanos: 0 }
+          });
         }
 
 
