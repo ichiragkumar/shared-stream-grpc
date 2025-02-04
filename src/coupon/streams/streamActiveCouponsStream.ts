@@ -1,75 +1,72 @@
 import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
-import { UserFilter, ActiveCouponStreamResponse, StatusFilter, User } from '../../generated/coupon_stream';
+import { User, ActiveCouponStreamResponse } from '../../generated/coupon_stream';
 
 export function streamActiveCouponsStream(db: Db, data: User): Observable<ActiveCouponStreamResponse> {
   return new Observable(subscriber => {
-
     const { userId } = data;
 
-    db.collection('userCoupons').findOne({ userId })
-      .then(userExists => {
-        if (!userExists) {
-          console.log('user does not exist');
-          subscriber.error(new Error('user does not exist'));
+    (async () => {
+      try {
+        const userExists = await db.collection('userCoupons').findOne({ userId });
 
+        if (!userExists) {
+          console.log('User does not exist');
+          subscriber.error(new Error('User does not exist'));
           return;
         }
 
 
+        const initialDocuments = db.collection('userCoupons').find({ userId });
+        for await (const doc of initialDocuments) {
+          subscriber.next(mapToCouponIssue(doc));
+        }
+
+
         const changeStream = db.collection('userCoupons').watch(
-          [
-            {
-              $match: {
-                'fullDocument.userId': userId,
-              },
-            },
-          ],
+          [{ $match: { 'fullDocument.userId': userId } }],
           { fullDocument: 'updateLookup' }
         );
 
-
-        changeStream.on('change', async (change: any) => {
+        changeStream.on('change', (change: any) => {
           if (change.fullDocument) {
-            if (!change.fullDocument._id || !change.fullDocument.userId) {
-              subscriber.complete(); 
-              return;
-            }
-
-
-            const couponIssue: any = {
-              _id: change.fullDocument._id.toString(),
-              redemptionInfo: change.fullDocument.redemptionInfo || null,
-              code: change.fullDocument.code,
-              businessId: change.fullDocument.businessId,
-              couponIssueId: change.fullDocument._id.toString(),
-              redeemedBySelfActivation: change.fullDocument.redeemedBySelfActivation,
-              purchasePrice: change.fullDocument.purchasePrice,
-              purchaseCurrency: change.fullDocument.purchaseCurrency,
-              userId: change.fullDocument.userId,
-              status: change.fullDocument.status,
-              expireAt: { seconds: change.fullDocument.expireAt.getTime() / 1000, nanos: 0 }, 
-              createdAt: { seconds: change.fullDocument.createdAt.getTime() / 1000, nanos: 0 },
-              purchasedAt: { seconds: change.fullDocument.purchasedAt.getTime() / 1000, nanos: 0 }
-            };
-            subscriber.next(couponIssue);
+            subscriber.next(mapToCouponIssue(change.fullDocument));
           }
         });
 
-
         changeStream.on('error', (error: any) => {
-
-          subscriber.complete(); 
+          console.error('Change stream error:', error);
+          subscriber.error(error);
         });
 
         return () => {
           console.log('Cleaning up change stream');
           changeStream.close();
         };
-      })
-      .catch(error => {
 
-        subscriber.complete(); 
-      });
+      } catch (error) {
+        console.error('Error in streaming:', error);
+        subscriber.error(error);
+      }
+    })();
   });
+}
+
+
+function mapToCouponIssue(doc: any): ActiveCouponStreamResponse {
+  return {
+    Id: doc._id?.toString(),
+    redemptionInfo: doc.redemptionInfo || null,
+    code: doc.code,
+    businessId: doc.businessId,
+    couponIssueId: doc._id?.toString(),
+    redeemedBySelfActivation: doc.redeemedBySelfActivation,
+    purchasePrice: doc.purchasePrice,
+    purchaseCurrency: doc.purchaseCurrency,
+    userId: doc.userId,
+    status: doc.status,
+    expireAt: { seconds: doc.expireAt.getTime() / 1000, nanos: 0 },
+    createdAt: { seconds: doc.createdAt.getTime() / 1000, nanos: 0 }, 
+    purchasedAt: { seconds: doc.purchasedAt.getTime() / 1000, nanos: 0 }
+  };
 }
