@@ -35,3 +35,4 @@ export const DEFAUlT_SETTINGS = {
 
 export const validContractTypes = ['vendor', 'advertiser', 'sponsor', 'specialIssue', 'business', 'voucher'];
 
+export const VALID_STATUS = ['active', 'suspended', 'ended'];

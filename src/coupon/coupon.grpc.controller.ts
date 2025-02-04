@@ -32,6 +32,7 @@ export class CouponGrpcController {
   
   @GrpcMethod('CouponStreamService', 'ActiveCouponIssuesWithBusinessesStream')
   ActiveCouponIssuesWithBusinessesStream(data: UserPrefrences): Observable<CouponIssueWithBusiness> {
+    console.log("aactive coupon issue with business stream controller "); 
     return this.couponService.streamActiveCouponIssuesWithBusinessService(data);
   }
 

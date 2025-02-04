@@ -58,6 +58,8 @@ export class CouponService {
   
 
   streamActiveCouponIssuesWithBusinessService(data: UserPrefrences): Observable<CouponIssueWithBusiness> {
+    console.log("aactive coupon issue with business service"); 
+
     return streamActiveCouponIssuesWithBusiness(this.db, data);
 }
 

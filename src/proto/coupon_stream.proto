@@ -152,11 +152,11 @@ message CouponIssueWithBusiness {
   int32 priceAmount = 11;
   string currency = 12;
   string drawId = 13;
-  int32 sellPriceAmount = 14;
+  double sellPriceAmount = 14;
   repeated string restrictedBranchIds = 15;
   repeated string drawNumbers = 16;
   string descriptionFile = 17;
-  int32 purchasePriceAmount = 18;
+  double purchasePriceAmount = 18;
   int32 arrangement = 19;
   int32 streamtype = 20;
 }

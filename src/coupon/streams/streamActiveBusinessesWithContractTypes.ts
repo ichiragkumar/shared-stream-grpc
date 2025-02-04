@@ -15,8 +15,8 @@ export function streamActiveBusinessesWithContractTypes(
     (async () => {
       try {
         const initialDocuments = await db.collection('businesses').find({ contractTypes: { $in: validContractTypes } }).toArray();
-        for (const doc of initialDocuments) {
-          subscriber.next(mapBusiness(doc, languageCode, brightness, STREAM_TYPE.BASE));
+        for (const document of initialDocuments) {
+          subscriber.next(mapBusiness(document, languageCode, brightness, STREAM_TYPE.BASE));
         }
 
         const changeStream = db.collection('businesses').watch(
