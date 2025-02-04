@@ -57,8 +57,11 @@ export interface CouponIssue {
 }
 
 export interface UserFilter {
-  userId: string;
   languageCode?: string | undefined;
+}
+
+export interface User {
+  userId: string;
 }
 
 export interface LanguageFilter {
@@ -177,7 +180,7 @@ export const COUPON_PACKAGE_NAME = "coupon";
 export interface CouponStreamServiceClient {
   streamCouponIssues(request: LanguageFilter): Observable<CouponIssue>;
 
-  streamActiveCoupons(request: UserFilter): Observable<ActiveCouponStreamResponse>;
+  streamActiveCoupons(request: User): Observable<ActiveCouponStreamResponse>;
 
   streamActiveBusinessesStream(request: LanguageFilter): Observable<ActiveBusinessesStreamResponse>;
 
@@ -193,7 +196,7 @@ export interface CouponStreamServiceClient {
 export interface CouponStreamServiceController {
   streamCouponIssues(request: LanguageFilter): Observable<CouponIssue>;
 
-  streamActiveCoupons(request: UserFilter): Observable<ActiveCouponStreamResponse>;
+  streamActiveCoupons(request: User): Observable<ActiveCouponStreamResponse>;
 
   streamActiveBusinessesStream(request: LanguageFilter): Observable<ActiveBusinessesStreamResponse>;
 

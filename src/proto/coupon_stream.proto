@@ -9,7 +9,7 @@ service CouponStreamService {
 
   rpc StreamCouponIssues(LanguageFilter) returns (stream CouponIssue);
 
-  rpc StreamActiveCoupons(UserFilter) returns (stream ActiveCouponStreamResponse);
+  rpc StreamActiveCoupons(User) returns (stream ActiveCouponStreamResponse);
 
   rpc StreamActiveBusinessesStream(LanguageFilter) returns (stream ActiveBusinessesStreamResponse);
 
@@ -78,10 +78,12 @@ message CouponIssue {
 
 
 message UserFilter {
-  string userId = 1;
   optional string languageCode = 2;
 }
 
+message User{
+  string userId = 1;
+}
 message LanguageFilter {
  optional string languageCode = 1;
 }

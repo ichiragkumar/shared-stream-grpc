@@ -1,8 +1,8 @@
 import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
-import { MoreCouponRequest, UserFilter } from '../../generated/coupon_stream';
+import { MoreCouponRequest, User, UserFilter } from '../../generated/coupon_stream';
 
-export function streamMoreCouponRequestsService(data: UserFilter, db: Db): Observable<MoreCouponRequest> {
+export function streamMoreCouponRequestsService(data: User, db: Db): Observable<MoreCouponRequest> {
   return new Observable<MoreCouponRequest>(subscriber => {
     const { userId } = data;
 

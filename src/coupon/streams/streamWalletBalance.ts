@@ -1,9 +1,9 @@
 import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
-import { Balance, WalletBalanceResponse, UserFilter } from 'src/generated/coupon_stream';
+import { Balance, WalletBalanceResponse, UserFilter, User } from 'src/generated/coupon_stream';
 import { STREAM_TYPE } from 'src/types';
 
-export function streamWalletBalance(db: Db, data: UserFilter): Observable<WalletBalanceResponse> {
+export function streamWalletBalance(db: Db, data:User): Observable<WalletBalanceResponse> {
   return new Observable(subscriber => {
     db.collection('wallets').findOne({ userId: data.userId })
       .then((doc) => {

@@ -13,7 +13,8 @@ import {
   Balance,
   LanguageFilter,
   WalletBalanceResponse,
-  ActiveDrawnResponse
+  ActiveDrawnResponse,
+  User
 } from "../generated/coupon_stream";
 
 
@@ -41,18 +42,18 @@ export class CouponGrpcController {
   }
 
   @GrpcMethod('CouponStreamService', 'StreamActiveCoupons')
-  streamActiveCouponsStream(data: StatusFilter): Observable<ActiveCouponStreamResponse> {
+  streamActiveCouponsStream(data: User): Observable<ActiveCouponStreamResponse> {
     return this.couponService.streamActiveCouponsStreamService(data);
   }
 
 
   @GrpcMethod('CouponStreamService', 'StreamMoreCouponRequests')
-    StreamMoreCouponRequests(data: UserFilter): Observable<MoreCouponRequest> {
+    StreamMoreCouponRequests(data: User): Observable<MoreCouponRequest> {
     return this.couponService.streamMoreCouponRequestsService(data);
   }
 
   @GrpcMethod('CouponStreamService', 'WalletStream')
-  streamWalletController(data: UserFilter): Observable<WalletBalanceResponse> {
+  streamWalletController(data: User): Observable<WalletBalanceResponse> {
     return this.couponService.streamWalletService(data);
   }
 

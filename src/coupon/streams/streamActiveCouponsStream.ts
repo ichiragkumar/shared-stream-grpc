@@ -1,13 +1,11 @@
 import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
-import { UserFilter, ActiveCouponStreamResponse, StatusFilter } from '../../generated/coupon_stream';
+import { UserFilter, ActiveCouponStreamResponse, StatusFilter, User } from '../../generated/coupon_stream';
 
-export function streamActiveCouponsStream(db: Db, data: StatusFilter): Observable<ActiveCouponStreamResponse> {
+export function streamActiveCouponsStream(db: Db, data: User): Observable<ActiveCouponStreamResponse> {
   return new Observable(subscriber => {
 
-    const { statuses } = data;
-    const userId = "234324345"
-
+    const { userId } = data;
 
     db.collection('userCoupons').findOne({ userId })
       .then(userExists => {
@@ -23,7 +21,6 @@ export function streamActiveCouponsStream(db: Db, data: StatusFilter): Observabl
           [
             {
               $match: {
-                'fullDocument.status': { $in: ['active', 'suspended', 'ended'] },
                 'fullDocument.userId': userId,
               },
             },
