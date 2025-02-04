@@ -19,7 +19,7 @@ service CouponStreamService {
   rpc ActiveCouponIssuesWithBusinessesStream(LanguageFilter) returns (stream CouponIssueWithBusiness);
 
 
-  rpc WalletStream(UserFilter) returns (stream WalletBalanceResponse);
+  rpc WalletStream(User) returns (stream WalletBalanceResponse);
 
   rpc StreamActiveDrawn(LanguageFilter) returns (stream ActiveDrawnResponse);
 }

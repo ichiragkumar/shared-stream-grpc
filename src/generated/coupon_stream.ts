@@ -188,7 +188,7 @@ export interface CouponStreamServiceClient {
 
   activeCouponIssuesWithBusinessesStream(request: LanguageFilter): Observable<CouponIssueWithBusiness>;
 
-  walletStream(request: UserFilter): Observable<WalletBalanceResponse>;
+  walletStream(request: User): Observable<WalletBalanceResponse>;
 
   streamActiveDrawn(request: LanguageFilter): Observable<ActiveDrawnResponse>;
 }
@@ -204,7 +204,7 @@ export interface CouponStreamServiceController {
 
   activeCouponIssuesWithBusinessesStream(request: LanguageFilter): Observable<CouponIssueWithBusiness>;
 
-  walletStream(request: UserFilter): Observable<WalletBalanceResponse>;
+  walletStream(request: User): Observable<WalletBalanceResponse>;
 
   streamActiveDrawn(request: LanguageFilter): Observable<ActiveDrawnResponse>;
 }
