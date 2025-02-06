@@ -38,10 +38,7 @@ export function streamActiveBusinessesWithContractTypes(
             mappedIssue = mapBusiness(change.fullDocument, languageCode, brightness, streamType);
           } else if (hasOnlyNotTracked || isNowEmpty) {
             streamType = STREAM_TYPE.REMOVED;
-            mappedIssue = {
-              id: change.fullDocument._id.toString(),
-              streamType: streamType,
-            } as ActiveBusinessesStreamResponse;
+            mappedIssue = mapBusiness(change.fullDocument, languageCode, brightness, streamType);
           }
 
           if (mappedIssue) {
