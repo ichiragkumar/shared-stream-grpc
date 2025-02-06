@@ -21,6 +21,7 @@ export function streamActiveDrawn(db: Db, languageFilter: UserPrefrences): Obser
       }
     })();
 
+// whatever documets are there, if these status from to any other status , just add a remove documet as response also to close the stream
 
     const changeStream = db.collection('draws').watch(
       [
@@ -80,3 +81,4 @@ function mapActiveDrawn(doc: any, languageCode: string, brightness: string): Act
     status: doc.status || '',
   };
 }
+

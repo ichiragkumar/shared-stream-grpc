@@ -2,7 +2,10 @@ import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
 import { CouponIssueWithBusiness, UserPrefrences } from 'src/generated/coupon_stream';
 import { safeParseDate, STREAM_TYPE } from 'src/types';
-import { DEFAULT_COUPON_ISSUE_WITH_BUSINESS, DEFAUlT_SETTINGS, VALID_STATUS } from 'src/config/constant';
+import { DEFAULT_COUPON_ISSUE_WITH_BUSINESS, DEFAUlT_SETTINGS } from 'src/config/constant';
+
+const VALID_STATUS  = ['active', 'suspended', 'ended'];
+const BUSINESS_NOT_TRACKED_STATUS = ['closed', 'expired', 'over'];
 
 const mapToCouponIssue = (
   document: any, 
@@ -10,7 +13,6 @@ const mapToCouponIssue = (
   bright: string, 
   streamType: STREAM_TYPE
 ): CouponIssueWithBusiness => {
-
   return {
     couponIssueId: document._id?.toString() || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.couponIssueId,
     businessId: document.businessId?.toString() || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.businessId,
@@ -64,43 +66,33 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: Use
           subscriber.next(mapToCouponIssue(document, languageCode, brightness, STREAM_TYPE.BASE));
         }
 
-        const changeStream = db.collection('couponIssues').watch(
-          [
-            {
-              $match: {
-                'fullDocument.status': { $in: VALID_STATUS }
-              }
-            }
-          ],
-          { fullDocument: 'updateLookup' }
-        );
+        const changeStream = db.collection('couponIssues').watch([], { fullDocument: 'updateLookup' });
 
         changeStream.on('change', async (change: any) => {
           try {
             let streamType: STREAM_TYPE;
-            switch (change.operationType) {
-              case 'insert':
-                streamType = STREAM_TYPE.INSERT;
-                break;
-              case 'update':
-              case 'replace':
-                streamType = STREAM_TYPE.UPDATE;
-                break;
-              case 'delete':
-                streamType = STREAM_TYPE.DELETE;
-                return; 
-              default:
-                return;
+            let mappedIssue: CouponIssueWithBusiness | null = null;
+
+            const previousStatus = change?.updateDescription?.updatedFields?.status ?? change?.fullDocumentBeforeChange?.status;
+            const newStatus = change.fullDocument?.status;
+            if(BUSINESS_NOT_TRACKED_STATUS.includes(newStatus)){
+              streamType = STREAM_TYPE.REMOVED;
+              mappedIssue = mapToCouponIssue(change.fullDocument, languageCode, brightness, streamType);
+            }
+            const wasTracked = previousStatus && VALID_STATUS.includes(previousStatus);
+            const isNowTracked = VALID_STATUS.includes(newStatus);
+
+
+            if (wasTracked && isNowTracked) {
+              streamType = STREAM_TYPE.UPDATE;
+              mappedIssue = mapToCouponIssue(change.fullDocument, languageCode, brightness, streamType);
+            } else if (!wasTracked && isNowTracked) {
+              streamType = STREAM_TYPE.INSERT;
+              mappedIssue = mapToCouponIssue(change.fullDocument, languageCode, brightness, streamType);
             }
 
-            if (change.fullDocument) {
-              const updatedDocument = await db.collection('couponIssues')
-                .aggregate([{ $match: { _id: change.fullDocument._id } }, ...pipeline])
-                .next();
-
-              if (updatedDocument) {
-                subscriber.next(mapToCouponIssue(updatedDocument, languageCode, brightness, streamType));
-              }
+            if (mappedIssue) {
+              subscriber.next(mappedIssue);
             }
           } catch (error) {
             console.error('Error processing change stream event:', error);
@@ -113,12 +105,10 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: Use
           subscriber.error(error);
         });
 
-        return () => {
+        subscriber.add(() => {
           console.log('Cleaning up change stream');
           changeStream.close();
-        };
-
-
+        });
       } catch (error) {
         console.error('Stream initialization error:', error);
         subscriber.error(error);

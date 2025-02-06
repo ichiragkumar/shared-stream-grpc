@@ -64,7 +64,8 @@ export enum STREAM_TYPE {
     BASE   =0,
     UPDATE =1,
     INSERT =2,
-    DELETE =3
+    DELETE =3,
+    REMOVED = 4
 }
 
 

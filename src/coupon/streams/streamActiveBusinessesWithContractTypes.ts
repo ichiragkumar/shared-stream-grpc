@@ -2,7 +2,8 @@ import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
 import { ActiveBusinessesStreamResponse, UserPrefrences } from '../../generated/coupon_stream';
 import { STREAM_TYPE } from 'src/types';
-import { DEFAUlT_SETTINGS, validContractTypes } from 'src/config/constant';
+import { DEFAUlT_SETTINGS, NOT_TRACKED_CONTRACT_TYPES, VALID_CONTRACT_TYPES } from 'src/config/constant';
+
 
 export function streamActiveBusinessesWithContractTypes(
   languageFilter: UserPrefrences,
@@ -14,38 +15,38 @@ export function streamActiveBusinessesWithContractTypes(
 
     (async () => {
       try {
-        const initialDocuments = await db.collection('businesses').find({ contractTypes: { $in: validContractTypes } }).toArray();
+        const initialDocuments = await db.collection('businesses').find({ contractTypes: { $in: VALID_CONTRACT_TYPES } }).toArray();
         for (const document of initialDocuments) {
           subscriber.next(mapBusiness(document, languageCode, brightness, STREAM_TYPE.BASE));
         }
 
-        const changeStream = db.collection('businesses').watch(
-          [
-            {
-              $match: {
-                'fullDocument.contractTypes': { $in: validContractTypes },
-              },
-            },
-          ],
-          { fullDocument: 'updateLookup' }
-        );
+        const changeStream = db.collection('businesses').watch([], { fullDocument: 'updateLookup' });
 
         changeStream.on('change', async (change: any) => {
           if (!change.fullDocument) return;
 
           let streamType: STREAM_TYPE;
-          switch (change.operationType) {
-            case 'insert':
-              streamType = STREAM_TYPE.INSERT;
-              break;
-            case 'update':
-              streamType = STREAM_TYPE.UPDATE;
-              break;
-            default:
-              return;
+          let mappedIssue: ActiveBusinessesStreamResponse | null = null;
+
+          const contractTypes = change.fullDocument?.contractTypes || [];
+          const hasTrackedType = contractTypes.some(type => VALID_CONTRACT_TYPES.includes(type));
+          const hasOnlyNotTracked = contractTypes.length > 0 && contractTypes.every(type => NOT_TRACKED_CONTRACT_TYPES.includes(type));
+          const isNowEmpty = contractTypes.length === 0;
+
+          if (hasTrackedType) {
+            streamType = change.operationType === 'insert' ? STREAM_TYPE.INSERT : STREAM_TYPE.UPDATE;
+            mappedIssue = mapBusiness(change.fullDocument, languageCode, brightness, streamType);
+          } else if (hasOnlyNotTracked || isNowEmpty) {
+            streamType = STREAM_TYPE.REMOVED;
+            mappedIssue = {
+              id: change.fullDocument._id.toString(),
+              streamType: streamType,
+            } as ActiveBusinessesStreamResponse;
           }
 
-          subscriber.next(mapBusiness(change.fullDocument, languageCode, brightness, streamType));
+          if (mappedIssue) {
+            subscriber.next(mappedIssue);
+          }
         });
 
         changeStream.on('error', error => {

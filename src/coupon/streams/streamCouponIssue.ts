@@ -2,7 +2,8 @@ import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
 import { CouponIssue, UserPrefrences } from '../../generated/coupon_stream';
 import { STREAM_TYPE } from 'src/types';
-import { DEFAUlT_SETTINGS, VALID_STATUS } from 'src/config/constant';
+import { DEFAUlT_SETTINGS } from 'src/config/constant';
+import { TRACKED_STATUS, NOT_TRACKED_STATUS } from 'src/config/constant';
 
 export function streamCouponIssues(
   userPrefrences: UserPrefrences,
@@ -14,54 +15,63 @@ export function streamCouponIssues(
 
     (async () => {
       try {
+        const issueCouponDocuments = db.collection('couponIssues').find({ status: { $in: TRACKED_STATUS } });
 
-        const initialDocuments = db
-          .collection('couponIssues')
-          .find({ status: { $in: VALID_STATUS } });
-
-        for await (const doc of initialDocuments) {
-          subscriber.next(mapCouponIssue(doc, languageCode, brightness, STREAM_TYPE.BASE));
+        for await (const document of issueCouponDocuments) {
+          subscriber.next(mapCouponIssue(document, languageCode, brightness, STREAM_TYPE.BASE));
         }
 
-
-        const changeStream = db.collection('couponIssues').watch(
-          [
-            {
-              $match: {
-                'fullDocument.status': { $in: ['active', 'suspended', 'ended'] },
-              },
-            },
-          ],
-          { fullDocument: 'updateLookup' }
-        );
+        await issueCouponDocuments.close();
+        const changeStream = db.collection('couponIssues').watch([], { fullDocument: 'updateLookup' });
 
         changeStream.on('change', (change: any) => {
           if (!change.fullDocument) return;
 
           let streamType: STREAM_TYPE;
+          let mappedIssue: CouponIssue | null = null;
+
+          const previousStatus = change?.updateDescription?.removedFields?.includes('status')
+            ? null
+            : change?.updateDescription?.updatedFields?.status;
+
+          const newStatus = change.fullDocument?.status;
+
+          const wasTracked = previousStatus && TRACKED_STATUS.includes(previousStatus);
+          const isNowTracked = TRACKED_STATUS.includes(newStatus);
+          const isNowNotTracked = NOT_TRACKED_STATUS.includes(newStatus);
+
           switch (change.operationType) {
-            case 'insert':
-              streamType = STREAM_TYPE.INSERT;
-              break;
             case 'update':
-              streamType = STREAM_TYPE.UPDATE;
+              if (wasTracked && isNowTracked) {
+                streamType = STREAM_TYPE.UPDATE;
+                mappedIssue = mapCouponIssue(change.fullDocument, languageCode, brightness, streamType);
+              } else if (wasTracked && isNowNotTracked) {
+                streamType = STREAM_TYPE.REMOVED;
+                mappedIssue = mapCouponIssue(change.fullDocument, languageCode, brightness, streamType);
+              } else if (!wasTracked && isNowTracked) {
+                streamType = STREAM_TYPE.INSERT;
+                mappedIssue = mapCouponIssue(change.fullDocument, languageCode, brightness, streamType);
+              } else if (!wasTracked && isNowNotTracked) {
+                streamType = STREAM_TYPE.REMOVED;
+                mappedIssue = mapCouponIssue(change.fullDocument, languageCode, brightness, streamType);
+              }
               break;
-            default:
-              return;
           }
 
-          subscriber.next(mapCouponIssue(change.fullDocument, languageCode, brightness, streamType));
+          if (mappedIssue) {
+            subscriber.next(mappedIssue);
+          }
         });
 
         changeStream.on('error', (error: any) => {
           console.error('Change stream error:', error);
           subscriber.error(error);
         });
+
         subscriber.add(() => {
           console.log('Cleaning up change stream');
           changeStream.close();
         });
-
       } catch (error) {
         console.error('Error fetching or streaming data:', error);
         subscriber.error(error);
@@ -72,16 +82,14 @@ export function streamCouponIssues(
 
 function mapCouponIssue(doc: any, languageCode: string, brightness: string, streamType: STREAM_TYPE): CouponIssue {
   return {
-    id: doc._id ? doc._id.toString() : '', 
+    id: doc._id ? doc._id.toString() : '',
     drawId: doc.drawId,
     businessContractId: doc.businessContractId,
     deliveryAvailable: doc.deliveryAvailable,
     deliveryContactPhone: doc.deliveryContactPhone,
-
     title: doc.title?.[languageCode] || doc.title?.['en'] || 'Unknown',
     image: doc.image?.[brightness]?.[languageCode] || doc.image?.[brightness]?.['en'] || '',
     descriptionFile: doc.descriptionFile?.[languageCode] || doc.descriptionFile?.['en'] || '',
-
     activeAt: doc.activeAt,
     endAt: doc.endAt,
     expireAt: doc.expireAt,

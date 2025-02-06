@@ -33,10 +33,20 @@ export const DEFAUlT_SETTINGS = {
   BRIGHTNESS: 'light'
 };
 
-export const validContractTypes = ['vendor', 'advertiser', 'sponsor', 'specialIssue', 'business', 'voucher'];
+export const VALID_CONTRACT_TYPES = ['vendor', 'advertiser', 'sponsor', 'specialIssue', 'business', 'voucher'];
+export const NOT_TRACKED_CONTRACT_TYPES = ['closed', 'over', 'expired', 'unknown'];
 
-export const VALID_STATUS = ['active', 'suspended', 'ended'];
+export const BUSINESS_VALID_STATUS = ['active', 'suspended', 'ended'];
+export const BUSINESS_NOT_TRACKED_STATUS = ['closed', 'expired', 'over'];
+
 
 export const ACTIVE_DRAWN_STATUS = ['open', 'predraw', 'drawing', 'contest'];
 
 export const USER_COUPON_STATUS = ['active', 'suspended', 'ended'];
+
+
+
+
+// for coupon Issue Stream
+export const TRACKED_STATUS = ['active', 'suspended', 'ended'];
+export const NOT_TRACKED_STATUS = ['closed', 'expired', 'over'];
