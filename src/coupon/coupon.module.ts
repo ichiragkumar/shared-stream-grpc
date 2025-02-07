@@ -2,8 +2,10 @@ import { Module } from '@nestjs/common';
 import { CouponController } from './coupon.controller';
 import { CouponService } from './coupon.service';
 import { CouponGrpcController } from "./coupon.grpc.controller"
+import { LoggerModule } from '../logger/logger.module';
 
 @Module({
+  imports: [LoggerModule],
   controllers: [CouponController,CouponGrpcController],
   providers: [CouponService]
 })

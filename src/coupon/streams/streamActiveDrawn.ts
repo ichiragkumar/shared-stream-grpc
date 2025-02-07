@@ -2,20 +2,63 @@ import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
 import { ActiveDrawnResponse, UserPrefrences } from 'src/generated/coupon_stream';
 import { ACTIVE_DRAWN_STATUS, DEFAUlT_SETTINGS } from 'src/config/constant';
+import { LoggerService } from '@nestjs/common';
 
-export function streamActiveDrawn(db: Db, languageFilter: UserPrefrences): Observable<ActiveDrawnResponse> {
+export function streamActiveDrawn(db: Db, userPrefrences: UserPrefrences, logger: LoggerService): Observable<ActiveDrawnResponse> {
   return new Observable(subscriber => {
-    const languageCode = languageFilter?.languageCode || DEFAUlT_SETTINGS.LANGUAGE_CODE;
-    const brightness = languageFilter?.brightness || DEFAUlT_SETTINGS.BRIGHTNESS;
+    const languageCode = userPrefrences?.languageCode || DEFAUlT_SETTINGS.LANGUAGE_CODE;
+    const brightness = userPrefrences?.brightness || DEFAUlT_SETTINGS.BRIGHTNESS;
+
+    const streamMetrics = {
+      startTime: Date.now(),
+      initialDocumentsCount: 0,
+      changeEventsCount: 0,
+      removeEventsCount: 0,
+      errors: 0,
+    };
+
+    logger.log('Stream initialization', {
+      context: 'streamActiveDrawn',
+      userPreferences: userPrefrences,
+    });
 
     (async () => {
       try {
-        const initialDocuments = db.collection('draws').find({ status: { $in: ACTIVE_DRAWN_STATUS } });
+        const fetchStartTime = Date.now();
 
+        const initialDocuments = db.collection('draws').find({ status: { $in: ACTIVE_DRAWN_STATUS } });
         for await (const document of initialDocuments) {
+          streamMetrics.initialDocumentsCount++;
+          logger.log('Initial document emission', {
+            context: 'streamActiveDrawn',
+            documentId: document._id,
+            businessId: document.businessId,
+            contractId: document.contractId,
+            elapsedTime: Date.now() - fetchStartTime,
+          });
           subscriber.next(mapActiveDrawn(document, languageCode, brightness));
         }
+
+        logger.log('Initial fetch completed', {
+          context: 'streamActiveDrawn',
+          documentsProcessed: streamMetrics.initialDocumentsCount,
+          fetchDuration: Date.now() - fetchStartTime,
+          memoryUsage: process.memoryUsage(),
+        });
       } catch (error) {
+        streamMetrics.errors++;
+        logger.error('Error fetching initial documents', {
+          context: 'streamActiveDrawn',
+          error: {
+            message: error.message,
+            stack: error.stack,
+          },
+          metrics: {
+            totalErrors: streamMetrics.errors,
+          },
+        });
+
+
         console.error('Error fetching initial documents:', error);
         subscriber.error(error);
       }
@@ -37,17 +80,64 @@ export function streamActiveDrawn(db: Db, languageFilter: UserPrefrences): Obser
       { fullDocument: 'updateLookup' }
     );
 
+    logger.log('Change stream established', {
+      context: 'streamActiveDrawn',
+    });
+
+
+
     changeStream.on('change', (change: any) => {
-      if (!change.fullDocument) return;
+      if (!change.fullDocument) {
+        logger.warn('Change event without full document', {
+          context: 'streamActiveDrawn',
+          operationType: change.operationType,
+          documentId: change.documentKey?._id,
+        });
+
+        return;
+      }
+
+      streamMetrics.changeEventsCount++;
+      logger.log('Change event processing', {
+        context: 'streamActiveDrawn',
+        operationType: change.operationType,
+        documentId: change.fullDocument._id,
+        totalChanges: streamMetrics.changeEventsCount,
+        timeSinceStart: Date.now() - streamMetrics.startTime,
+      });
+
       subscriber.next(mapActiveDrawn(change.fullDocument, languageCode, brightness));
     });
 
     changeStream.on('error', error => {
+      streamMetrics.errors++;
+      logger.error('Change stream error', {
+        context: 'streamActiveDrawn',
+        error: {
+          message: error.message,
+          stack: error.stack,
+        },
+        metrics: {
+          totalErrors: streamMetrics.errors,
+          uptime: Date.now() - streamMetrics.startTime,
+        },
+      });
       console.error('Change stream error:', error);
       subscriber.error(error);
     });
 
     subscriber.add(() => {
+      logger.log('Stream cleanup', {
+        context: 'streamActiveDrawn',
+        metrics: {
+          duration: Date.now() - streamMetrics.startTime,
+          initialDocuments: streamMetrics.initialDocumentsCount,
+          changeEvents: streamMetrics.changeEventsCount,
+          removeEvents: streamMetrics.removeEventsCount,
+          errors: streamMetrics.errors,
+          memoryUsage: process.memoryUsage(),
+        },
+      });
       console.log('Cleaning up change stream');
       changeStream.close();
     });

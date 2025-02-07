@@ -3,15 +3,31 @@ import { Db } from 'mongodb';
 import { CouponIssueWithBusiness, UserPrefrences } from 'src/generated/coupon_stream';
 import { safeParseDate, STREAM_TYPE } from 'src/types';
 import { DEFAULT_COUPON_ISSUE_WITH_BUSINESS, DEFAUlT_SETTINGS, BUSINESS_VALID_STATUS, BUSINESS_NOT_TRACKED_STATUS } from 'src/config/constant';
+import { LoggerService } from '@nestjs/common';
 
 
 
 
 
-export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: UserPrefrences): Observable<CouponIssueWithBusiness> {
+export function streamActiveCouponIssuesWithBusiness(db: Db, userPrefrences: UserPrefrences, logger: LoggerService): Observable<CouponIssueWithBusiness> {
   return new Observable(subscriber => {
-    const languageCode = languageFilter?.languageCode || DEFAUlT_SETTINGS.LANGUAGE_CODE;
-    const brightness = languageFilter?.brightness || DEFAUlT_SETTINGS.BRIGHTNESS;
+    const languageCode = userPrefrences?.languageCode || DEFAUlT_SETTINGS.LANGUAGE_CODE;
+    const brightness = userPrefrences?.brightness || DEFAUlT_SETTINGS.BRIGHTNESS;
+
+   
+    const streamMetrics = {
+      startTime: Date.now(),
+      initialDocumentsCount: 0,
+      changeEventsCount: 0,
+      errors: 0
+    };
+
+    logger.log('Stream initialization', {
+      context: 'streamActiveCouponIssuesWithBusiness',
+      languageCode,
+      brightness
+    });
+
 
     const pipeline = [
       { $match: { status: { $in: BUSINESS_VALID_STATUS } } },
@@ -26,16 +42,47 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: Use
       { $unwind: { path: '$business', preserveNullAndEmptyArrays: true } }
     ];
 
+    
+
     (async () => {
       try {
+        const fetchStartTime = Date.now();
+
         const initialResults = await db.collection('couponIssues').aggregate(pipeline).toArray();
         for (const document of initialResults) {
+          streamMetrics.initialDocumentsCount++;
+          logger.log('Initial document emission', {
+            context: 'streamMoreCouponRequestsService',
+            documentId: document._id,
+            elapsedTime: Date.now() - fetchStartTime
+          });
           subscriber.next(mapToCouponIssue(document, languageCode, brightness, STREAM_TYPE.BASE));
         }
+        
 
+        logger.log('Initial fetch completed', {
+          context: 'streamActiveCouponIssuesWithBusiness',
+          documentsProcessed: streamMetrics.initialDocumentsCount,
+          fetchDuration: Date.now() - fetchStartTime
+        });
+
+        const changeStreamStartTime = Date.now();
         const changeStream = db.collection('couponIssues').watch([], { fullDocument: 'updateLookup' });
-
+        logger.log('Change stream established', {
+          context: 'streamActiveCouponIssuesWithBusiness',
+          setupTime: Date.now() - changeStreamStartTime
+        });
         changeStream.on('change', async (change: any) => {
+          if (!change.fullDocument){
+            logger.warn('Change event without full document', {
+              context: 'streamActiveCouponIssuesWithBusiness',
+              operationType: change.operationType,
+              documentId: change.documentKey?._id
+            });
+          return;
+          }
+
+
           try {
             let streamType: STREAM_TYPE;
             let mappedIssue: CouponIssueWithBusiness | null = null;
@@ -59,24 +106,69 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, languageFilter: Use
             }
 
             if (mappedIssue) {
+              streamMetrics.changeEventsCount++;
+              logger.log('Change event processed', {
+                context: 'streamMoreCouponRequestsService',
+                documentId: change.fullDocument._id,
+                operationType: change.operationType,
+                totalChanges: streamMetrics.changeEventsCount
+              });
               subscriber.next(mappedIssue);
             }
           } catch (error) {
+            streamMetrics.errors++;
+            logger.error('Error processing change stream event', {
+              context: 'streamActiveCouponIssuesWithBusiness',
+              error: {
+                message: error.message,
+                stack: error.stack
+              },
+              metrics: { totalErrors: streamMetrics.errors }
+            });
             console.error('Error processing change stream event:', error);
             subscriber.error(error);
           }
         });
 
         changeStream.on('error', (error) => {
+          streamMetrics.errors++;
+          logger.error('Change stream error', {
+            context: 'streamActiveCouponIssuesWithBusiness',
+            error: {
+              message: error.message,
+              stack: error.stack
+            },
+            metrics: { totalErrors: streamMetrics.errors }
+          });
+
           console.error('Change stream error:', error);
           subscriber.error(error);
         });
 
         subscriber.add(() => {
+          logger.log('Stream cleanup', {
+            context: 'streamActiveCouponIssuesWithBusiness',
+            metrics: {
+              duration: Date.now() - streamMetrics.startTime,
+              initialDocuments: streamMetrics.initialDocumentsCount,
+              changeEvents: streamMetrics.changeEventsCount,
+              errors: streamMetrics.errors
+            }
+          });
           console.log('Cleaning up change stream');
           changeStream.close();
         });
       } catch (error) {
+
+        streamMetrics.errors++;
+        logger.error('Stream initialization error', {
+          context: 'streamActiveCouponIssuesWithBusiness',
+          error: {
+            message: error.message,
+            stack: error.stack
+          },
+          metrics: { totalErrors: streamMetrics.errors }
+        });
         console.error('Stream initialization error:', error);
         subscriber.error(error);
       }

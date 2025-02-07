@@ -20,7 +20,7 @@ import {streamWalletBalance} from "./streams/streamWalletBalance"
 import { streamActiveDrawn } from './streams/streamActiveDrawn';
 import { streamMoreCouponRequestsService } from './streams/streamMoreCouponRequests';
 import { streamActiveCouponsStream } from './streams/streamActiveCouponsStream';
-
+import { LoggerService } from '../logger/logger.service';
 
 
 
@@ -40,42 +40,51 @@ interface ActiveCouponIssueWithBusiness {
 @Injectable()
 export class CouponService {
   private db: Db;
-
-  constructor() {}
+  constructor(private readonly logger: LoggerService) {}
 
   async onModuleInit() {
     this.db = await DatabaseService.connect();
+    this.logger.log('Database connected successfully.');
   }
 
-  streamCouponIssuesService(data: UserPrefrences): Observable<CouponIssue> {
-    return streamCouponIssues(data, this.db);
+  streamCouponIssuesService(data: UserPrefrences ): Observable<CouponIssue> {
+    this.logger.log('streamCouponIssuesService called', { userPrefrences: data });
+    return streamCouponIssues(data, this.db, this.logger);
   }
 
   streamMoreCouponRequestsService(data: User): Observable<MoreCouponRequest> {
-    return streamMoreCouponRequestsService( this.db, data);
+    this.logger.log('streamMoreCouponRequestsService called', { user: data });
+    return streamMoreCouponRequestsService( this.db, data, this.logger);
   }
 
   
 
   streamActiveCouponIssuesWithBusinessService(data: UserPrefrences): Observable<CouponIssueWithBusiness> {
-    return streamActiveCouponIssuesWithBusiness(this.db, data);
+    this.logger.log('streamActiveCouponIssuesWithBusinessService called', { userPrefrences: data });
+    return streamActiveCouponIssuesWithBusiness(this.db, data, this.logger);
 }
  
 
   streamActiveBusinessesWithContractTypesService(data: UserPrefrences): Observable<ActiveBusinessesStreamResponse> {
-    return streamActiveBusinessesWithContractTypes(data, this.db);
+    this.logger.log('streamActiveBusinessesWithContractTypesService called', { userPrefrences: data });
+    return streamActiveBusinessesWithContractTypes(data, this.db, this.logger
+    );
   }
 
   streamActiveCouponsStreamService(data: User): Observable<ActiveCouponStreamResponse> {
-    return streamActiveCouponsStream(this.db, data);
+    this.logger.log('streamActiveCouponsStreamService called', { user: data });
+    return streamActiveCouponsStream(this.db, data, this.logger);
   }
 
   streamWalletService(data: User): Observable<WalletBalanceResponse > {
-    return streamWalletBalance(this.db, data);
+    this.logger.log('streamWalletService called', { user: data });
+    return streamWalletBalance(this.db, data, this.logger);
   }
 
   streamActiveDrawnService(data: UserPrefrences): Observable<ActiveDrawnResponse>{
-    return streamActiveDrawn(this.db, data);
+    this.logger.log('streamActiveDrawnService called', { userPrefrences: data });
+    return streamActiveDrawn(this.db, data, this.logger);
+
   }
 
   

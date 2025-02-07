@@ -8,6 +8,7 @@ import { GrpcReflectionModule } from 'nestjs-grpc-reflection';
 import { join } from 'path';
 import { Transport } from '@nestjs/microservices';
 import { OffersModule } from './offers/offers.module';
+import { LoggerModule } from './logger/logger.module';
 
 @Module({
   imports: [CouponModule, BusinessModule, AuthModule,
@@ -20,6 +21,7 @@ import { OffersModule } from './offers/offers.module';
       },
     }),
     OffersModule,
+    LoggerModule,
 
   ],
   controllers: [AppController],

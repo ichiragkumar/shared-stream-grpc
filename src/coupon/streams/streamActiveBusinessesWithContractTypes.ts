@@ -3,27 +3,73 @@ import { Db } from 'mongodb';
 import { ActiveBusinessesStreamResponse, UserPrefrences } from '../../generated/coupon_stream';
 import { STREAM_TYPE } from 'src/types';
 import { DEFAUlT_SETTINGS, NOT_TRACKED_CONTRACT_TYPES, VALID_CONTRACT_TYPES } from 'src/config/constant';
+import { LoggerService } from 'src/logger/logger.service';
 
 
 export function streamActiveBusinessesWithContractTypes(
-  languageFilter: UserPrefrences,
-  db: Db
+  userPrefrences: UserPrefrences,
+  db: Db,
+  logger: LoggerService,
 ): Observable<ActiveBusinessesStreamResponse> {
   return new Observable(subscriber => {
-    const languageCode = languageFilter?.languageCode || DEFAUlT_SETTINGS.LANGUAGE_CODE;
-    const brightness = languageFilter?.brightness || DEFAUlT_SETTINGS.BRIGHTNESS;
+
+    const languageCode = userPrefrences?.languageCode || DEFAUlT_SETTINGS.LANGUAGE_CODE;
+    const brightness = userPrefrences?.brightness || DEFAUlT_SETTINGS.BRIGHTNESS;
+
+
+    const requestId = logger.initializeRequest('StreamActiveBusinessesStream', 'Unknown', 'Unknown', 'Unknown', 'Unknown');
+    logger.log('Stream initialization', {
+      context: 'streamActiveBusinessesWithContractTypes',
+      userPreferences: {
+        languageCode,
+        brightness,
+        originalLanguage: userPrefrences?.languageCode,
+        originalBrightness: userPrefrences?.brightness
+      },
+      requestId
+    });
 
     (async () => {
       try {
+        const fetchStartTime = Date.now();
         const initialDocuments = await db.collection('businesses').find({ contractTypes: { $in: VALID_CONTRACT_TYPES } }).toArray();
         for (const document of initialDocuments) {
+          logger.log('Initial document emission', {
+            context: 'streamActiveBusinessesWithContractTypes',
+            documentId: document._id,
+            businessId: document._id.toString(),
+            documentNumber: initialDocuments.indexOf(document) + 1,
+            elapsedTime: Date.now() - fetchStartTime,
+            requestId
+          });
           subscriber.next(mapBusiness(document, languageCode, brightness, STREAM_TYPE.BASE));
         }
+        logger.log('Initial fetch completed', {
+          context: 'streamActiveBusinessesWithContractTypes',
+          requestId,
+          documentsProcessed: initialDocuments.length,
+          fetchDuration: Date.now() - fetchStartTime
+        });
+
+
 
         const changeStream = db.collection('businesses').watch([], { fullDocument: 'updateLookup' });
+        logger.log('Change stream established', {
+          context: 'streamActiveBusinessesWithContractTypes',
+          requestId
+        });
+        
 
         changeStream.on('change', async (change: any) => {
-          if (!change.fullDocument) return;
+          if (!change.fullDocument) {
+            logger.warn('Change event missing full document', {
+              context: 'streamActiveBusinessesWithContractTypes',
+              requestId,
+              operationType: change.operationType,
+              documentId: change.documentKey?._id?.toString()
+            });
+            return;
+          }
 
           let streamType: STREAM_TYPE;
           let mappedIssue: ActiveBusinessesStreamResponse | null = null;
@@ -42,21 +88,33 @@ export function streamActiveBusinessesWithContractTypes(
           }
 
           if (mappedIssue) {
+            logger.log('Change event processed', {
+              context: 'streamActiveBusinessesWithContractTypes',
+              requestId,
+              operationType: change.operationType,
+              documentId: change.fullDocument._id.toString(),
+            });
             subscriber.next(mappedIssue);
           }
         });
 
         changeStream.on('error', error => {
+          logger.error('Change stream error')
           console.error('Change stream error:', error);
           subscriber.error(error);
         });
 
         subscriber.add(() => {
+          logger.log('Stream cleanup', {
+            context: 'streamActiveBusinessesWithContractTypes',
+            requestId
+          });
           console.log('Cleaning up change stream');
           changeStream.close();
         });
 
       } catch (error) {
+        logger.error('Stream operation error', error)
         console.error('Error fetching initial data:', error);
         subscriber.error(error);
       }
