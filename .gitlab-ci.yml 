@@ -12,6 +12,5 @@ deploy:
   script:
     - echo "Starting deployment..."
     - ssh -o StrictHostKeyChecking=no $REMOTE_SERVER "cd $REMOTE_PATH && git pull"
-  rules:
-    - if: $CI_COMMIT_BRANCH == 'GS-1-gRPC-services'
+
 
