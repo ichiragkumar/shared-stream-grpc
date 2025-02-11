@@ -22,6 +22,13 @@ service CouponStreamService {
   rpc WalletStream(User) returns (stream WalletBalanceResponse);
 
   rpc StreamActiveDrawn(UserPrefrences) returns (stream ActiveDrawnResponse);
+
+
+  rpc TicketsStream(User) returns (stream TicketStreamResponse);
+
+  rpc ZonesStream(UserPrefrences) returns (stream ZoneStreamResponse);
+
+
 }
 
 //NOTE: List of statuses to filter, e.g., 'active', 'suspended', 'ended'
@@ -211,3 +218,29 @@ message ActiveDrawnResponse {
 
 
 
+message TicketStreamResponse {
+  string id = 1;
+  string userId = 2;
+  string drawId = 3;
+  string drawType = 4;
+  bool isDrawClosed = 5;
+  repeated int32 drawNumbers = 6;
+  string createdAt = 7;
+  string status = 8;
+  int32 streamType = 9;
+}
+
+message Location {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+message ZoneStreamResponse {
+  string id = 1;
+  string country = 2;
+  string createdAt = 3;
+  bool isDefault = 4;
+  string name = 5;
+  Location location = 6;
+  int32 streamType = 7;
+}

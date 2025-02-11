@@ -174,6 +174,33 @@ export interface ActiveDrawnResponse {
   status: string;
 }
 
+export interface TicketStreamResponse {
+  id: string;
+  userId: string;
+  drawId: string;
+  drawType: string;
+  isDrawClosed: boolean;
+  drawNumbers: number[];
+  createdAt: string;
+  status: string;
+  streamType: number;
+}
+
+export interface Location {
+  latitude: number;
+  longitude: number;
+}
+
+export interface ZoneStreamResponse {
+  id: string;
+  country: string;
+  createdAt: string;
+  isDefault: boolean;
+  name: string;
+  location: Location | undefined;
+  streamType: number;
+}
+
 export const COUPON_PACKAGE_NAME = "coupon";
 
 export interface CouponStreamServiceClient {
@@ -190,6 +217,10 @@ export interface CouponStreamServiceClient {
   walletStream(request: User): Observable<WalletBalanceResponse>;
 
   streamActiveDrawn(request: UserPrefrences): Observable<ActiveDrawnResponse>;
+
+  ticketsStream(request: User): Observable<TicketStreamResponse>;
+
+  zonesStream(request: UserPrefrences): Observable<ZoneStreamResponse>;
 }
 
 export interface CouponStreamServiceController {
@@ -206,6 +237,10 @@ export interface CouponStreamServiceController {
   walletStream(request: User): Observable<WalletBalanceResponse>;
 
   streamActiveDrawn(request: UserPrefrences): Observable<ActiveDrawnResponse>;
+
+  ticketsStream(request: User): Observable<TicketStreamResponse>;
+
+  zonesStream(request: UserPrefrences): Observable<ZoneStreamResponse>;
 }
 
 export function CouponStreamServiceControllerMethods() {
@@ -218,6 +253,8 @@ export function CouponStreamServiceControllerMethods() {
       "activeCouponIssuesWithBusinessesStream",
       "walletStream",
       "streamActiveDrawn",
+      "ticketsStream",
+      "zonesStream",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

@@ -1,6 +1,5 @@
-import { BadRequestException, Controller, UseGuards } from '@nestjs/common';
-import { GrpcMethod, GrpcStreamMethod} from '@nestjs/microservices';
-import { Observable, of, throwError } from 'rxjs';
+import {  Controller } from '@nestjs/common';
+import { Observable } from 'rxjs';
 import { CouponService } from './coupon.service';
 import { 
   StatusFilter, 
@@ -14,10 +13,13 @@ import {
   UserPrefrences,
   WalletBalanceResponse,
   ActiveDrawnResponse,
-  User
+  User,
+  TicketStreamResponse,
+  ZoneStreamResponse
 } from "../generated/coupon_stream";
 import { LoggerService } from '../logger/logger.service';
 import { Metadata } from '@grpc/grpc-js';
+import { GrpcMethod } from '@nestjs/microservices';
 
 
 @Controller()
@@ -331,8 +333,93 @@ StreamActiveDrawn(data: UserPrefrences, metadata: Metadata): Observable<ActiveDr
   });
 }
 
+
+  @GrpcMethod('CouponStreamService', 'TicketsStream')
+  TicketsStream(data: User, metadata: Metadata): Observable<TicketStreamResponse> {
+  const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
+  const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
+  const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';  
+  const userId = (metadata.get('user-id')?.[0] as string);  
+    
+  const requestId = this.logger.initializeRequest(
+    'TicketsStream',
+    userAgent,
+    ipAddress,
+    dns,
+    userId
+  );
+    
+  return new Observable((subscriber) => {
+    this.couponService.TicketsStreamService(data).subscribe({
+      next: (ticketStreamResponse) => {
+        this.logger.logStreamEvent(requestId, 'TICKET_STREAM', {
+          id: ticketStreamResponse.id,
+          userId: ticketStreamResponse.userId,
+          drawId: ticketStreamResponse.drawId,
+          drawType: ticketStreamResponse.drawType,
+          isDrawClosed: ticketStreamResponse.isDrawClosed,
+          drawNumbers: ticketStreamResponse.drawNumbers,
+          createdAt: ticketStreamResponse.createdAt,
+          status: ticketStreamResponse.status,
+          streamType: ticketStreamResponse.streamType
+        });
+        subscriber.next(ticketStreamResponse);
+      },
+      error: (error) => {
+        this.logger.logError(requestId, error);
+        subscriber.error(error);
+      },
+      complete: () => {
+        this.logger.finalizeRequest(requestId);
+        subscriber.complete();
+      }
+    });
+  });  
+  }
+
+
+  @GrpcMethod('CouponStreamService', 'ZonesStream')
+  ZonesStream(data: UserPrefrences, metadata: Metadata): Observable<ZoneStreamResponse> {
+    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
+    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
+    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
+    const userId = (metadata.get('user-id')?.[0] as string);
+
+    const requestId = this.logger.initializeRequest(
+      'ZonesStream',
+      userAgent,
+      ipAddress,
+      dns,
+      userId
+    );
+
+    return new Observable((subscriber) => {
+      this.couponService.ZonesStreamService(data).subscribe({
+        next: (zoneStreamResponse) => {
+          this.logger.logStreamEvent(requestId, 'ZONE_STREAM', {
+            id: zoneStreamResponse.id,
+            country: zoneStreamResponse.country,
+            createdAt: zoneStreamResponse.createdAt,
+            isDefault: zoneStreamResponse.isDefault,
+            name: zoneStreamResponse.name,
+            location: zoneStreamResponse.location,
+            streamType: zoneStreamResponse.streamType
+          });
+          subscriber.next(zoneStreamResponse);
+        },
+        error: (error) => {
+          this.logger.logError(requestId, error);
+          subscriber.error(error);
+        },
+        complete: () => {
+          this.logger.finalizeRequest(requestId);
+          subscriber.complete();
+        }
+      });
+    }); 
+  }
+  
+  
   
 
 }
-
-

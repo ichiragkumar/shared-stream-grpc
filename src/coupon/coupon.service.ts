@@ -9,7 +9,9 @@ import {
   UserPrefrences,
   WalletBalanceResponse,
   ActiveDrawnResponse,
-  User
+  User,
+  TicketStreamResponse,
+  ZoneStreamResponse
 } from "../generated/coupon_stream"
 import { Db } from 'mongodb';
 import { DatabaseService } from 'src/config/database.config';
@@ -21,6 +23,9 @@ import { streamActiveDrawn } from './streams/streamActiveDrawn';
 import { streamMoreCouponRequestsService } from './streams/streamMoreCouponRequests';
 import { streamActiveCouponsStream } from './streams/streamActiveCouponsStream';
 import { LoggerService } from '../logger/logger.service';
+import { streamUserTickets } from './streams/streamUserTicket';
+import { streamZones } from './streams/streamZones';
+
 
 
 
@@ -85,6 +90,16 @@ export class CouponService {
     this.logger.log('streamActiveDrawnService called', { userPrefrences: data });
     return streamActiveDrawn(this.db, data, this.logger);
 
+  }
+
+  TicketsStreamService(data:User): Observable<TicketStreamResponse> {
+    this.logger.log('TicketsStreamService called', { user: data });
+    return streamUserTickets(this.db, data, this.logger);
+  }
+
+  ZonesStreamService(data: UserPrefrences): Observable<ZoneStreamResponse> {
+    this.logger.log('ZonesStreamService called', { userPrefrences: data });
+    return streamZones(this.db, data, this.logger);
   }
 
   
