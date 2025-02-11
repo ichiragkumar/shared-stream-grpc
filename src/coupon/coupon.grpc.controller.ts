@@ -15,7 +15,8 @@ import {
   ActiveDrawnResponse,
   User,
   TicketStreamResponse,
-  ZoneStreamResponse
+  ZoneStreamResponse,
+  BusinessBranchStreamResponse
 } from "../generated/coupon_stream";
 import { LoggerService } from '../logger/logger.service';
 import { Metadata } from '@grpc/grpc-js';
@@ -417,6 +418,51 @@ StreamActiveDrawn(data: UserPrefrences, metadata: Metadata): Observable<ActiveDr
         }
       });
     }); 
+  }
+
+
+  @GrpcMethod('CouponStreamService', 'BusinessBranchStream')
+  BusinessBranchStream(data: UserPrefrences, metadata: Metadata): Observable<BusinessBranchStreamResponse> {
+    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
+    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
+    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
+    const userId = (metadata.get('user-id')?.[0] as string);
+
+    const requestId = this.logger.initializeRequest(
+      'BusinessBranchStream',
+      userAgent,
+      ipAddress,
+      dns,
+      userId
+    );
+
+    return new Observable((subscriber) => {
+      this.couponService.BusinessBranchStreamService(data).subscribe({
+        next: (businessBranchResponse) => {
+          this.logger.logStreamEvent(requestId, 'BUSINESS_BRANCH', {
+            id: businessBranchResponse.id,
+            businessSuspended: businessBranchResponse.businessSuspended,
+            shortAddress: businessBranchResponse.shortAddress,
+            businessId: businessBranchResponse.businessId,
+            zoneId: businessBranchResponse.zoneId,
+            location: businessBranchResponse.location,
+            openingHours: businessBranchResponse.openingHours,
+            createdAt: businessBranchResponse.createdAt,
+            contractTypes: businessBranchResponse.contractTypes,
+            streamType: businessBranchResponse.streamType
+          });
+          subscriber.next(businessBranchResponse);
+        },
+        error: (error) => {
+          this.logger.logError(requestId, error);
+          subscriber.error(error);
+        },
+        complete: () => {
+          this.logger.finalizeRequest(requestId);
+          subscriber.complete();
+        }
+      });
+    });
   }
   
   

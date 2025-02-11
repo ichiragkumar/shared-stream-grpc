@@ -146,7 +146,7 @@ export interface Balance {
 export interface WalletBalanceResponse {
   availableBalances: Balance | undefined;
   blockedBalances: Balance | undefined;
-  type: number;
+  streamType: number;
 }
 
 export interface ActiveDrawnResponse {
@@ -201,6 +201,29 @@ export interface ZoneStreamResponse {
   streamType: number;
 }
 
+export interface OpeningHours {
+  openTime: string;
+  closeTime: string;
+}
+
+export interface BusinessBranchStreamResponse {
+  id: string;
+  businessSuspended: boolean;
+  shortAddress: string;
+  businessId: string;
+  zoneId: string;
+  location: Location | undefined;
+  openingHours: { [key: string]: OpeningHours };
+  createdAt: string;
+  contractTypes: string[];
+  streamType: number;
+}
+
+export interface BusinessBranchStreamResponse_OpeningHoursEntry {
+  key: string;
+  value: OpeningHours | undefined;
+}
+
 export const COUPON_PACKAGE_NAME = "coupon";
 
 export interface CouponStreamServiceClient {
@@ -221,6 +244,8 @@ export interface CouponStreamServiceClient {
   ticketsStream(request: User): Observable<TicketStreamResponse>;
 
   zonesStream(request: UserPrefrences): Observable<ZoneStreamResponse>;
+
+  businessBranchStream(request: UserPrefrences): Observable<BusinessBranchStreamResponse>;
 }
 
 export interface CouponStreamServiceController {
@@ -241,6 +266,8 @@ export interface CouponStreamServiceController {
   ticketsStream(request: User): Observable<TicketStreamResponse>;
 
   zonesStream(request: UserPrefrences): Observable<ZoneStreamResponse>;
+
+  businessBranchStream(request: UserPrefrences): Observable<BusinessBranchStreamResponse>;
 }
 
 export function CouponStreamServiceControllerMethods() {
@@ -255,6 +282,7 @@ export function CouponStreamServiceControllerMethods() {
       "streamActiveDrawn",
       "ticketsStream",
       "zonesStream",
+      "businessBranchStream",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

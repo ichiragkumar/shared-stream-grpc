@@ -28,6 +28,10 @@ service CouponStreamService {
 
   rpc ZonesStream(UserPrefrences) returns (stream ZoneStreamResponse);
 
+  rpc BusinessBranchStream(UserPrefrences) returns (stream BusinessBranchStreamResponse);
+
+
+
 
 }
 
@@ -184,7 +188,7 @@ message Balance {
 message WalletBalanceResponse {
   Balance availableBalances = 1;
   Balance blockedBalances = 2;
-  int32 type = 3;
+  int32 streamType = 3;
 
 }
 
@@ -235,6 +239,9 @@ message Location {
   double longitude = 2;
 }
 
+
+
+
 message ZoneStreamResponse {
   string id = 1;
   string country = 2;
@@ -243,4 +250,23 @@ message ZoneStreamResponse {
   string name = 5;
   Location location = 6;
   int32 streamType = 7;
+}
+
+
+
+message OpeningHours {
+  string openTime = 1;
+  string closeTime = 2;
+}
+message BusinessBranchStreamResponse {
+  string id = 1;
+  bool businessSuspended = 2;
+  string shortAddress = 3;
+  string businessId = 4;
+  string zoneId = 5;
+  Location location = 6;
+  map<string, OpeningHours> openingHours = 7;
+  string createdAt = 8;
+  repeated string contractTypes = 9;
+  int32 streamType = 10;
 }

@@ -11,7 +11,8 @@ import {
   ActiveDrawnResponse,
   User,
   TicketStreamResponse,
-  ZoneStreamResponse
+  ZoneStreamResponse,
+  BusinessBranchStreamResponse
 } from "../generated/coupon_stream"
 import { Db } from 'mongodb';
 import { DatabaseService } from 'src/config/database.config';
@@ -25,6 +26,7 @@ import { streamActiveCouponsStream } from './streams/streamActiveCouponsStream';
 import { LoggerService } from '../logger/logger.service';
 import { streamUserTickets } from './streams/streamUserTicket';
 import { streamZones } from './streams/streamZones';
+import { streamBusinessBranches } from './streams/streamBusinessBranches';
 
 
 
@@ -100,6 +102,11 @@ export class CouponService {
   ZonesStreamService(data: UserPrefrences): Observable<ZoneStreamResponse> {
     this.logger.log('ZonesStreamService called', { userPrefrences: data });
     return streamZones(this.db, data, this.logger);
+  }
+
+  BusinessBranchStreamService(data: UserPrefrences): Observable<BusinessBranchStreamResponse> {
+    this.logger.log('BusinessBranchStreamService called', { userPrefrences: data });
+    return streamBusinessBranches(this.db, data, this.logger);
   }
 
   

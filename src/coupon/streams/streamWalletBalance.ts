@@ -35,7 +35,7 @@ export function streamWalletBalance(db: Db, data: User,logger:LoggerService): Ob
           subscriber.next({
             availableBalances: { USD: 0, EGP: 0 },
             blockedBalances: { USD: 0, EGP: 0 },
-            type: STREAM_TYPE.BASE,
+            streamType: STREAM_TYPE.BASE,
           });
         } else {
           const availableBalances: Balance = userWalletDocument.availableBalances || { USD: 0, EGP: 0 };
@@ -55,7 +55,7 @@ export function streamWalletBalance(db: Db, data: User,logger:LoggerService): Ob
           subscriber.next({
             availableBalances,
             blockedBalances,
-            type: STREAM_TYPE.BASE,
+            streamType: STREAM_TYPE.BASE,
           });
         }
 
@@ -104,7 +104,7 @@ export function streamWalletBalance(db: Db, data: User,logger:LoggerService): Ob
             totalChanges: streamMetrics.changeEventsCount,
             timeSinceStart: Date.now() - streamMetrics.startTime,
           });
-          subscriber.next({ availableBalances, blockedBalances, type: streamType });
+          subscriber.next({ availableBalances, blockedBalances, streamType: streamType });
         });
 
         changeStream.on('error', (error: any) => {
