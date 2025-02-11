@@ -207,6 +207,6 @@ const mapToCouponIssue = (
     descriptionFile: document.descriptionFile?.[lang] || document.descriptionFile?.en || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.descriptionFile,
     purchasePriceAmount: Number(document.purchasePriceAmount) || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.purchasePriceAmount,
     arrangement: Number(document.arrangement) || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.arrangement,
-    streamtype: streamType || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.streamtype
+    streamType: streamType || DEFAULT_COUPON_ISSUE_WITH_BUSINESS.streamtype
   };
 };

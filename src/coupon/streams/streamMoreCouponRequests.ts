@@ -2,6 +2,7 @@ import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
 import { MoreCouponRequest, User } from '../../generated/coupon_stream';
 import { LoggerService } from '@nestjs/common';
+import { STREAM_TYPE } from 'src/types';
 
 export function streamMoreCouponRequestsService(
   db: Db,
@@ -44,6 +45,7 @@ export function streamMoreCouponRequestsService(
             couponIssueId: document.couponIssueId,
             createdAt: new Date(document.createdAt).getTime(),
             parentId: document.parentId || '',
+            streamType: STREAM_TYPE.BASE
           });
         }
 
@@ -65,6 +67,7 @@ export function streamMoreCouponRequestsService(
             couponIssueId: '',
             createdAt: 0,
             parentId: '',
+            streamType: STREAM_TYPE.BASE
           });
           subscriber.complete();
           return;
@@ -107,6 +110,7 @@ export function streamMoreCouponRequestsService(
             couponIssueId,
             createdAt: new Date(createdAt).getTime(),
             parentId: parentId || '',
+            streamType: STREAM_TYPE.UPDATE
           };
 
 

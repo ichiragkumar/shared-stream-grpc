@@ -51,7 +51,7 @@ export interface CouponIssue {
   methodsOfRedemption: string[];
   amountUsed: number;
   amountSold: number;
-  streamtype: number;
+  streamType: number;
   status: string;
 }
 
@@ -74,6 +74,7 @@ export interface MoreCouponRequest {
   couponIssueId: string;
   createdAt: number;
   parentId: string;
+  streamType: number;
 }
 
 export interface EmptyRequest {
@@ -108,6 +109,7 @@ export interface ActiveCouponStreamResponse {
   expireAt: string;
   createdAt: string;
   purchasedAt: string;
+  streamType: number;
 }
 
 export interface CouponIssueWithBusiness {
@@ -130,7 +132,7 @@ export interface CouponIssueWithBusiness {
   descriptionFile: string;
   purchasePriceAmount: number;
   arrangement: number;
-  streamtype: number;
+  streamType: number;
 }
 
 export interface RedemptionInfo {
@@ -172,6 +174,7 @@ export interface ActiveDrawnResponse {
   totalPrizesAmount: number;
   createdAt: string;
   status: string;
+  streamType: number;
 }
 
 export interface TicketStreamResponse {

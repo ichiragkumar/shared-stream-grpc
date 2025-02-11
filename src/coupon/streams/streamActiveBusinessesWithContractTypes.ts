@@ -131,7 +131,7 @@ function mapBusiness(doc: any, languageCode: string, brightness: string, streamT
     categories: doc.categories || [],
     businessId: doc._id.toString(),
     contractType: Array.isArray(doc.contractTypes) ? doc.contractTypes.join(', ') : '',
-    logo: doc.logo?.[brightness]?.[languageCode] || doc.logo?.[brightness]?.[Language.DEFAULT] || doc.logo?.[brightness]?.['Unknown Logo'] || doc.logo?.light?.[languageCode] || doc.logo?.light?.[Language.DEFAULT] || doc.logo?.light?.['Unknown Logo'] || doc.logo?.dark?.[languageCode] || doc.logo?.dark?.['en'] || doc.logo?.dark?.['Unknown Logo'] || '',
+    logo: doc.logo?.[brightness]?.[languageCode] || doc.logo?.[brightness]?.[Language.DEFAULT] || doc.logo?.[brightness]?.['Unknown Logo'] || doc.logo?.light?.[languageCode] || doc.logo?.light?.[Language.DEFAULT] || doc.logo?.light?.['Unknown Logo'] || doc.logo?.dark?.[languageCode] || doc.logo?.dark?.[Language.DEFAULT] || doc.logo?.dark?.['Unknown Logo'] || '',
     createdAt: doc.createdAt,
     sponsorshipType: doc.sponsorshipType || '',
     suspended: doc.suspended,

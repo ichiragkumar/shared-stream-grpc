@@ -36,7 +36,7 @@ export function streamActiveDrawn(db: Db, userPrefrences: UserPrefrences, logger
             contractId: document.contractId,
             elapsedTime: Date.now() - fetchStartTime,
           });
-          subscriber.next(mapActiveDrawn(document, languageCode, brightness));
+          subscriber.next(mapActiveDrawn(document, languageCode, brightness,0));
         }
 
         logger.log('Initial fetch completed', {
@@ -106,7 +106,7 @@ export function streamActiveDrawn(db: Db, userPrefrences: UserPrefrences, logger
         timeSinceStart: Date.now() - streamMetrics.startTime,
       });
 
-      subscriber.next(mapActiveDrawn(change.fullDocument, languageCode, brightness));
+      subscriber.next(mapActiveDrawn(change.fullDocument, languageCode, brightness, 1));
     });
 
     changeStream.on('error', error => {
@@ -145,7 +145,7 @@ export function streamActiveDrawn(db: Db, userPrefrences: UserPrefrences, logger
 }
 
 
-function mapActiveDrawn(doc: any, languageCode: string, brightness: string): ActiveDrawnResponse {
+function mapActiveDrawn(doc: any, languageCode: string, brightness: string, streamType:number): ActiveDrawnResponse {
   return {
     id: doc._id?.toString() || '',
     contractId: doc.contractId || '',
@@ -169,6 +169,7 @@ function mapActiveDrawn(doc: any, languageCode: string, brightness: string): Act
     totalPrizesAmount: doc.totalPrizesAmount ?? 0,
     createdAt: doc.createdAt?.$date || doc.createdAt || '',
     status: doc.status || '',
+    streamType: streamType
   };
 }
 

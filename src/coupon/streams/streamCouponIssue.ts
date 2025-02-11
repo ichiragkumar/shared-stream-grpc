@@ -237,6 +237,6 @@ function mapCouponIssue(doc: any, languageCode: string, brightness: string, stre
     methodsOfRedemption: doc.methodsOfRedemption,
     amountUsed: doc.amountUsed,
     amountSold: doc.amountSold,
-    streamtype: streamType,
+    streamType: streamType,
   };
 }

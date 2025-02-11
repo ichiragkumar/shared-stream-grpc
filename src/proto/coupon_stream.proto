@@ -82,7 +82,7 @@ message CouponIssue {
   repeated string methodsOfRedemption = 34;
   int32 amountUsed = 35;
   int32 amountSold = 36;
-  int32 streamtype = 37;
+  int32 streamType = 37;
   string status = 38;
 }
 
@@ -105,7 +105,8 @@ message MoreCouponRequest {
   string userId = 2;       
   string couponIssueId = 3; 
   int64  createdAt = 4;      
-  string parentId = 5;   
+  string parentId = 5;  
+  int32 streamType = 6;
 }
 
 
@@ -146,6 +147,7 @@ message ActiveCouponStreamResponse {
   string expireAt = 11;
   string createdAt = 12;
   string purchasedAt = 13;
+  int32 streamType = 14;
 }
 
 message CouponIssueWithBusiness {
@@ -168,7 +170,7 @@ message CouponIssueWithBusiness {
   string descriptionFile = 17;
   double purchasePriceAmount = 18;
   int32 arrangement = 19;
-  int32 streamtype = 20;
+  int32 streamType = 20;
 }
 
 
@@ -217,6 +219,7 @@ message ActiveDrawnResponse {
   int32 total_prizes_amount = 20; 
   string created_at = 21; 
   string status = 22;
+  int32 streamType = 23;
 }
 
 

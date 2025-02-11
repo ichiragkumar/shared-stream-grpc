@@ -3,6 +3,7 @@ import { Db } from 'mongodb';
 import { User, ActiveCouponStreamResponse } from '../../generated/coupon_stream';
 import { USER_COUPON_STATUS } from 'src/config/constant';
 import { LoggerService } from '@nestjs/common';
+import { STREAM_TYPE } from 'src/types';
 
 export function streamActiveCouponsStream(db: Db, data: User, logger:LoggerService): Observable<ActiveCouponStreamResponse> {
   return new Observable(subscriber => {
@@ -54,7 +55,8 @@ export function streamActiveCouponsStream(db: Db, data: User, logger:LoggerServi
             userId,
             expireAt:"",
             createdAt:"",
-            purchasedAt:""
+            purchasedAt:"",
+            streamType: STREAM_TYPE.BASE
           });
           subscriber.complete();
           return;
@@ -72,7 +74,7 @@ export function streamActiveCouponsStream(db: Db, data: User, logger:LoggerServi
             documentNumber: streamMetrics.initialDocumentsCount,
             elapsedTime: Date.now() - fetchStartTime,
           });
-          subscriber.next(mapToCouponIssue(doc));
+          subscriber.next(mapToCouponIssue(doc, 0));
         }
         logger.log('Initial fetch completed', {
           context: 'streamActiveCouponsStream',
@@ -121,7 +123,7 @@ export function streamActiveCouponsStream(db: Db, data: User, logger:LoggerServi
               timeSinceStart: Date.now() - streamMetrics.startTime,
             });
   
-            subscriber.next(mapToCouponIssue(change.fullDocument));
+            subscriber.next(mapToCouponIssue(change.fullDocument,1));
           }
         });
 
@@ -182,7 +184,7 @@ export function streamActiveCouponsStream(db: Db, data: User, logger:LoggerServi
   });
 }
 
-function mapToCouponIssue(doc: any): ActiveCouponStreamResponse {
+function mapToCouponIssue(doc: any, streamType: number): ActiveCouponStreamResponse {
   return {
     id: doc._id?.toString(),
     redemptionInfo: doc.redemptionInfo || null,
@@ -196,6 +198,7 @@ function mapToCouponIssue(doc: any): ActiveCouponStreamResponse {
     status: doc.status,
     expireAt: doc.expireAt,
     createdAt: doc.createdAt,
-    purchasedAt: doc.purchasedAt
+    purchasedAt: doc.purchasedAt,
+    streamType: streamType
   };
 }
