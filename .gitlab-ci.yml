@@ -3,8 +3,8 @@ stages:
   - deploy
 
 before_script:
-  - apk update
-  - apk add --no-cache openssh  # Install OpenSSH package to get ssh-keyscan
+  # - apk update
+  # - apk add --no-cache openssh  # Install OpenSSH package to get ssh-keyscan
   - mkdir -p ~/.ssh
   - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
   - chmod 600 ~/.ssh/id_rsa
@@ -14,6 +14,6 @@ deploy:
   stage: deploy
   script:
     - echo "Starting deployment..."
-    - ssh -o StrictHostKeyChecking=no $REMOTE_SERVER "cd $REMOTE_PATH && git pull && pm2 restart all"
+    - ssh -o StrictHostKeyChecking=no grpc@$REMOTE_IP "cd $REMOTE_PATH && git pull && pm2 restart all"
   rules:
    - if: '$CI_COMMIT_REF_NAME == "GS-1-gRPC-services"'
