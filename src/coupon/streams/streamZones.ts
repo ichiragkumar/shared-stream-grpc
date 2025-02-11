@@ -35,7 +35,7 @@ export function streamZones(db: Db, userPrefrences: UserPrefrences,logger: Logge
           hasZones = true;
           streamMetrics.initialDocumentsCount++;
 
-          const zoneResponse = mapZoneResponse(document, languageCode);
+          const zoneResponse = mapZoneResponse(document, languageCode,0);
 
           logger.log('Initial document emission', {
             context: 'streamZones',
@@ -116,7 +116,7 @@ export function streamZones(db: Db, userPrefrences: UserPrefrences,logger: Logge
         timeSinceStart: Date.now() - streamMetrics.startTime,
       });
 
-      subscriber.next(mapZoneResponse(change.fullDocument, languageCode));
+      subscriber.next(mapZoneResponse(change.fullDocument, languageCode,1));
     });
 
     changeStream.on('error', error => {
@@ -152,7 +152,7 @@ export function streamZones(db: Db, userPrefrences: UserPrefrences,logger: Logge
   });
 }
 
-function mapZoneResponse(document: any, languageCode: string): ZoneStreamResponse {
+function mapZoneResponse(document: any, languageCode: string,streamType:number): ZoneStreamResponse {
   return {
     id: document._id?.toString() || '',
     country: document.country || '',
@@ -163,6 +163,6 @@ function mapZoneResponse(document: any, languageCode: string): ZoneStreamRespons
       latitude: document.location?.latitude ?? 0,
       longitude: document.location?.longitude ?? 0,
     },
-    streamType: 1,
+    streamType: streamType,
   };
 }

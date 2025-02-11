@@ -38,7 +38,7 @@ export function streamUserTickets(db: Db, data: User, logger: LoggerService): Ob
             elapsedTime: Date.now() - fetchStartTime,
           });
 
-          subscriber.next(mapTicketResponse(document));
+          subscriber.next(mapTicketResponse(document,0));
         }
 
         if (!hasTickets) {
@@ -115,7 +115,7 @@ export function streamUserTickets(db: Db, data: User, logger: LoggerService): Ob
         timeSinceStart: Date.now() - streamMetrics.startTime,
       });
 
-      subscriber.next(mapTicketResponse(change.fullDocument));
+      subscriber.next(mapTicketResponse(change.fullDocument,1));
     });
 
     changeStream.on('error', error => {
@@ -151,7 +151,7 @@ export function streamUserTickets(db: Db, data: User, logger: LoggerService): Ob
   });
 }
 
-function mapTicketResponse(document: any): TicketStreamResponse {
+function mapTicketResponse(document: any,streamType:number): TicketStreamResponse {
   return {
     id: document._id?.toString() || '',
     userId: document.userId || '',
@@ -161,6 +161,6 @@ function mapTicketResponse(document: any): TicketStreamResponse {
     drawNumbers: document.drawNumbers ?? [],
     createdAt: document.createdAt?.$date || document.createdAt || '',
     status: document.status || '',
-    streamType: 0,
+    streamType: streamType,
   };
 }

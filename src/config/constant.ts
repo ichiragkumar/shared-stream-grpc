@@ -24,7 +24,7 @@ export const DEFAULT_COUPON_ISSUE_WITH_BUSINESS = {
   descriptionFile: '',
   purchasePriceAmount: 0,
   arrangement: 0,
-  streamtype: 0
+  streamType: 0
 };
 
 
