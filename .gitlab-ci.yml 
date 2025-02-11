@@ -1,0 +1,17 @@
+stages:
+  - deploy
+
+before_script:
+  - mkdir -p ~/.ssh
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+  - chmod 600 ~/.ssh/id_rsa
+  - ssh-keyscan -H $REMOTE_SERVER >> ~/.ssh/known_hosts
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Starting deployment..."
+    - ssh -o StrictHostKeyChecking=no $REMOTE_SERVER "cd $REMOTE_PATH && git pull"
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'GS-1-gRPC-services'
+
