@@ -9,6 +9,7 @@ import { join } from 'path';
 import { Transport } from '@nestjs/microservices';
 import { OffersModule } from './offers/offers.module';
 import { LoggerModule } from './logger/logger.module';
+import { PrizeModule } from './prize/prize.module';
 
 @Module({
   imports: [CouponModule, BusinessModule, AuthModule,
@@ -22,6 +23,7 @@ import { LoggerModule } from './logger/logger.module';
     }),
     OffersModule,
     LoggerModule,
+    PrizeModule,
 
   ],
   controllers: [AppController],

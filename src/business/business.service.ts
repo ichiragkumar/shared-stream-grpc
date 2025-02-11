@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { Db, Filter } from 'mongodb';
+import { Brightness, Language } from 'src/config/constant';
 import { DatabaseService } from 'src/config/database.config';
 import { BusinessBranchDetailDocument, BusinessBranchDocument, BusinessDocument } from 'src/types';
 
@@ -15,7 +16,7 @@ export class BusinessService {
     this.db = await DatabaseService.connect();
   }
 
-  async getBusinessById(id: string, languageCode: string = 'en', brightness: string = 'light') {
+  async getBusinessById(id: string, languageCode: string = Language.DEFAULT, brightness: string = Brightness.DEFAULT) {
     if (!id) {
       throw new BadRequestException('Invalid request: id is missing.');
     }
@@ -33,9 +34,9 @@ export class BusinessService {
       }
   
 
-      const localizedName = business.description?.[languageCode] || business.description?.['en'] || 'Unknown';
-      const localizedTitle = business.title?.[languageCode] || business.title?.['en'] || 'Unknown';
-      const image = business.logo?.[brightness]?.[languageCode] || business.logo?.[brightness]?.['en'] || null;
+      const localizedName = business.description?.[languageCode] || business.description?.[Language.DEFAULT] || 'Unknown';
+      const localizedTitle = business.title?.[languageCode] || business.title?.[Language.DEFAULT] || 'Unknown';
+      const image = business.logo?.[brightness]?.[languageCode] || business.logo?.[brightness]?.[Language.DEFAULT] || null;
 
       return {
         id: business._id,
@@ -55,7 +56,7 @@ export class BusinessService {
     }
   }
 
-  async getBusinessesWithIds(ids: string[], languageCode: string = 'en', brightness: string = 'light') {
+  async getBusinessesWithIds(ids: string[], languageCode: string = Language.DEFAULT, brightness: string = Language.DEFAULT) {
     if (!ids || ids.length === 0) {
       throw new BadRequestException("'ids' must be a non-empty array. : getBusinessesWithIds");
     }
@@ -79,9 +80,9 @@ export class BusinessService {
 
       return businesses.map(business => ({
         id: business._id,
-        name: business.description?.[languageCode] || business.description?.['en'] || 'Unknown',
-        title: business.title?.[languageCode] || business.title?.['en'] || 'Unknown',
-        image: business.logo?.[brightness]?.[languageCode] || business.logo?.[brightness]?.['en'] || null,
+        name: business.description?.[languageCode] || business.description?.[Language.DEFAULT] || 'Unknown',
+        title: business.title?.[languageCode] || business.title?.[Language.DEFAULT] || 'Unknown',
+        image: business.logo?.[brightness]?.[languageCode] || business.logo?.[brightness]?.[Language.DEFAULT] || null,
         categories: business.categories || [],
         createdAt: business.createdAt,
         suspended: business.suspended,
@@ -98,7 +99,7 @@ export class BusinessService {
   async getBusinessBranchDetails(
     businessId: string, 
     businessBranchId: string, 
-    languageCode: string = 'en'
+    languageCode: string = Language.DEFAULT
   ) {
     if (!businessId || !businessBranchId) {
       throw new BadRequestException('Invalid request: businessId or businessBranchId is missing.');
@@ -119,15 +120,15 @@ export class BusinessService {
       }
   
 
-      const localizedTitle = businessBranchDetail.title?.[languageCode] || businessBranchDetail.title?.['en'] || 'Unknown';
-      const localizedShortAddress = businessBranch.shortAddress?.[languageCode] || businessBranch.shortAddress?.['en'] || 'Unknown';
+      const localizedTitle = businessBranchDetail.title?.[languageCode] || businessBranchDetail.title?.[Language.DEFAULT] || 'Unknown';
+      const localizedShortAddress = businessBranch.shortAddress?.[languageCode] || businessBranch.shortAddress?.[Language.DEFAULT] || 'Unknown';
   
 
       return {
         id: businessBranchDetail._id,
         title: localizedTitle,
         shortAddress: localizedShortAddress,
-        address: businessBranchDetail.address?.[languageCode] || businessBranchDetail.address?.['en'],
+        address: businessBranchDetail.address?.[languageCode] || businessBranchDetail.address?.[Language.DEFAULT],
         phone: businessBranchDetail.phone,
         images: businessBranchDetail.images,
         location: businessBranch.location,

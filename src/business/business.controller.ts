@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query, Post, Body, BadRequestException } from '@nestjs/common';
 import { BusinessService } from './business.service';
+import { Brightness, Language } from 'src/config/constant';
 
 @Controller('api/v1/business')
 export class BusinessController {
@@ -8,8 +9,8 @@ export class BusinessController {
   @Get('/get-businesses')
   async getBusinessesWithIds(
   @Query('ids') ids: string,
-  @Query('languageCode') languageCode: string = 'en',
-  @Query('brightness') brightness: string = 'light',
+  @Query('languageCode') languageCode: string = Language.DEFAULT,
+  @Query('brightness') brightness: string = Brightness.DEFAULT,
   ) {
   const idsArray = ids ? ids.split(',') : [];
   if (idsArray.length === 0) {
@@ -24,7 +25,7 @@ export class BusinessController {
   async getBusinessBranchDetails(
     @Query('businessId') businessId: string,
     @Query('businessBranchId') businessBranchId: string,
-    @Query('languageCode') languageCode: string = 'en',
+    @Query('languageCode') languageCode: string = Language.DEFAULT,
   ) {
     if (!businessId || businessId.length === 0) {
       throw new BadRequestException('Invalid request: businessId is missing.');
@@ -41,8 +42,8 @@ export class BusinessController {
   @Get('/:id')
   async getBusinessById(
     @Param('id') id: string,
-    @Query('languageCode') languageCode: string = 'en',
-    @Query('brightness') brightness: string = 'light',
+    @Query('languageCode') languageCode: string = Language.DEFAULT,
+    @Query('brightness') brightness: string = Brightness.DEFAULT,
   ) {
 
     if(!id || id.length === 0) {

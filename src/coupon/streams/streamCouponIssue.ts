@@ -2,7 +2,7 @@ import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
 import { CouponIssue, UserPrefrences } from '../../generated/coupon_stream';
 import { STREAM_TYPE } from 'src/types';
-import { DEFAUlT_SETTINGS } from 'src/config/constant';
+import { DEFAUlT_SETTINGS, Language } from 'src/config/constant';
 import { TRACKED_STATUS, NOT_TRACKED_STATUS } from 'src/config/constant';
 import { LoggerService } from '@nestjs/common';
 
@@ -205,9 +205,9 @@ function mapCouponIssue(doc: any, languageCode: string, brightness: string, stre
     businessContractId: doc.businessContractId,
     deliveryAvailable: doc.deliveryAvailable,
     deliveryContactPhone: doc.deliveryContactPhone,
-    title: doc.title?.[languageCode] || doc.title?.['en'] || 'Unknown',
-    image: doc.image?.[brightness]?.[languageCode] || doc.image?.[brightness]?.['en'] || '',
-    descriptionFile: doc.descriptionFile?.[languageCode] || doc.descriptionFile?.['en'] || '',
+    title: doc.title?.[languageCode] || doc.title?.[Language.DEFAULT] || 'Unknown',
+    image: doc.image?.[brightness]?.[languageCode] || doc.image?.[brightness]?.[Language.DEFAULT] || '',
+    descriptionFile: doc.descriptionFile?.[languageCode] || doc.descriptionFile?.[Language.DEFAULT] || '',
     activeAt: doc.activeAt,
     endAt: doc.endAt,
     expireAt: doc.expireAt,
@@ -233,7 +233,7 @@ function mapCouponIssue(doc: any, languageCode: string, brightness: string, stre
     lastIncrId: doc.lastIncrId,
     nextCodeIncrId: doc.nextCodeIncrId,
     RawPath: doc._rawPath,
-    restrictions: doc.restrictions?.[languageCode] || doc.restrictions?.['en'] || '',
+    restrictions: doc.restrictions?.[languageCode] || doc.restrictions?.[Language.DEFAULT] || '',
     methodsOfRedemption: doc.methodsOfRedemption,
     amountUsed: doc.amountUsed,
     amountSold: doc.amountSold,

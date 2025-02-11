@@ -57,6 +57,18 @@ export interface BusinessBranchDocument extends Document {
   _parentId:string;
 }
 
+export interface PrizeDocument extends Document {
+  _id?: any;
+  amount?: number;
+  rank?: number;
+  value?: number;
+  title?: { [key: string]: string };
+  image?: { [brightness: string]: { [key: string]: string } };
+  description?: { [key: string]: string };
+  drawId?: string;
+  createdAt?: { $date: string } | string;
+}
+
 export const PAGE_LIMIT = 10;
 
 
@@ -91,6 +103,8 @@ export interface CouponIssueWithBusiness {
   purchasePriceAmount?: number;
   arrangement?: number;
 }
+
+
 
 
 export const safeParseDate = (dateValue: any): string => {

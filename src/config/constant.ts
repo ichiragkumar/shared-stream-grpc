@@ -52,3 +52,18 @@ export const USER_COUPON_STATUS = ['active', 'suspended', 'ended'];
 // for coupon Issue Stream
 export const TRACKED_STATUS = ['active', 'suspended', 'ended'];
 export const NOT_TRACKED_STATUS = ['closed', 'expired', 'over'];
+
+
+
+export enum Language {
+  EN = 'en',
+  AR = 'ar',
+  DEFAULT = 'en'
+}
+
+
+export enum Brightness {
+  LIGHT = 'light',
+  DARK = 'dark',
+  DEFAULT = 'light'
+}

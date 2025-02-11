@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Db, Filter } from 'mongodb';
+import { Language } from 'src/config/constant';
 import { DatabaseService } from 'src/config/database.config';
 import { BusinessDocument, SpecialOfferDocument } from 'src/types';
 
@@ -45,7 +46,7 @@ export class OffersService {
             businesses.map(business => [
               business._id.toString(),
               {
-                title: business.title?.[languageCode] || business.title?.['en'] || 'Unknown',
+                title: business.title?.[languageCode] || business.title?.[Language.DEFAULT] || 'Unknown',
                 categories: business.categories || 'other',
               },
             ])
@@ -56,8 +57,8 @@ export class OffersService {
             businessTitle: businessDocumentMap.get(offer.businessId)?.title || 'Unknown',
             categories: businessDocumentMap.get(offer.businessId)?.categories || 'other',
             businessId: offer.businessId,
-            offerTitle: offer.title?.[languageCode] || offer.title?.['en'] || 'Unknown',
-            content: offer.content?.[languageCode] || offer.content?.['en'] || 'No content available',
+            offerTitle: offer.title?.[languageCode] || offer.title?.[Language.DEFAULT] || 'Unknown',
+            content: offer.content?.[languageCode] || offer.content?.[Language.DEFAULT] || 'No content available',
             displayedFrom: offer.displayedFrom,
             displayedUntil: offer.displayedUntil,
             image: offer.image?.[brightness] || null,

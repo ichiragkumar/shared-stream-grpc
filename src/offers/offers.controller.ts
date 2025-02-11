@@ -1,5 +1,6 @@
 import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
 import { OffersService } from './offers.service';
+import { Brightness, Language } from 'src/config/constant';
 
 @Controller('api/v1/offers')
 export class OffersController {
@@ -9,8 +10,8 @@ export class OffersController {
     @Get('/spefcial-offers')
     async getSpecialOffers(
         @Query('ids') ids: string,
-        @Query('languageCode') languageCode: string = 'en',
-        @Query('brightness') brightness: string = 'light',
+        @Query('languageCode') languageCode: string = Language.DEFAULT,
+        @Query('brightness') brightness: string = Brightness.DEFAULT,
     ) {
         const idsArray = ids ? ids.split(',') : [];
         if (idsArray.length === 0) {

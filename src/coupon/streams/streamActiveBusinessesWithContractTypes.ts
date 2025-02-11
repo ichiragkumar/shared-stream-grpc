@@ -2,7 +2,7 @@ import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
 import { ActiveBusinessesStreamResponse, UserPrefrences } from '../../generated/coupon_stream';
 import { STREAM_TYPE } from 'src/types';
-import { DEFAUlT_SETTINGS, NOT_TRACKED_CONTRACT_TYPES, VALID_CONTRACT_TYPES } from 'src/config/constant';
+import { DEFAUlT_SETTINGS, Language, NOT_TRACKED_CONTRACT_TYPES, VALID_CONTRACT_TYPES } from 'src/config/constant';
 import { LoggerService } from 'src/logger/logger.service';
 
 
@@ -131,7 +131,7 @@ function mapBusiness(doc: any, languageCode: string, brightness: string, streamT
     categories: doc.categories || [],
     businessId: doc._id.toString(),
     contractType: Array.isArray(doc.contractTypes) ? doc.contractTypes.join(', ') : '',
-    logo: doc.logo?.[brightness]?.[languageCode] || doc.logo?.[brightness]?.['en'] || doc.logo?.[brightness]?.['Unknown Logo'] || doc.logo?.light?.[languageCode] || doc.logo?.light?.['en'] || doc.logo?.light?.['Unknown Logo'] || doc.logo?.dark?.[languageCode] || doc.logo?.dark?.['en'] || doc.logo?.dark?.['Unknown Logo'] || '',
+    logo: doc.logo?.[brightness]?.[languageCode] || doc.logo?.[brightness]?.[Language.DEFAULT] || doc.logo?.[brightness]?.['Unknown Logo'] || doc.logo?.light?.[languageCode] || doc.logo?.light?.[Language.DEFAULT] || doc.logo?.light?.['Unknown Logo'] || doc.logo?.dark?.[languageCode] || doc.logo?.dark?.['en'] || doc.logo?.dark?.['Unknown Logo'] || '',
     createdAt: doc.createdAt,
     sponsorshipType: doc.sponsorshipType || '',
     suspended: doc.suspended,
