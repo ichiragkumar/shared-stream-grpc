@@ -17,3 +17,4 @@ deploy:
     - ssh -o StrictHostKeyChecking=no grpc@34.77.95.113 "cd $REMOTE_PATH && git pull && pm2 restart all"
   rules:
    - if: '$CI_COMMIT_REF_NAME == "GS-1-gRPC-services"'
+ 
