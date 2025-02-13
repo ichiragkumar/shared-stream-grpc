@@ -13,6 +13,6 @@ COPY package.json .
 RUN npm install --only=production
 COPY --from=build /app/dist ./dist
 
-EXPOSE 3000
+EXPOSE 4005
 
-CMD npm run start:prod
+CMD ["npm", "run", "start:prod"]
