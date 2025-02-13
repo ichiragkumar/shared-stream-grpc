@@ -21,6 +21,9 @@ import {
 import { LoggerService } from '../logger/logger.service';
 import { Metadata } from '@grpc/grpc-js';
 import { GrpcMethod } from '@nestjs/microservices';
+import { DatabaseService } from 'src/config/database.config';
+
+
 
 
 @Controller()

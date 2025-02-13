@@ -3,21 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as winston from 'winston';
 
-
-interface RequestMetrics {
-  requestId: string;
-  method: string;
-  startTime: number;
-  userAgent: string;
-  ipAddress: string;
-  dns: string;
-  userId?: string;
-  latency?: number;
-  eventsEmitted?: number;
-  errorCount?: number;
-  performanceScore?: number;
-  status?: 'active' | 'completed' | 'error';
-}
+import { LoggingWinston } from '@google-cloud/logging-winston';
 
 
 
@@ -35,6 +21,9 @@ interface RequestMetrics {
   performanceScore?: number;
   status?: 'active' | 'completed' | 'error';
 }
+
+
+
 
 @Injectable()
 export class LoggerService implements NestLoggerService {
@@ -43,6 +32,12 @@ export class LoggerService implements NestLoggerService {
 
   constructor() {
     this.activeRequests = new Map();
+
+    const loggingWinston = new LoggingWinston({
+      projectId: 'waw-backend-stage',
+      logName: 'logs-metrics',
+    });
+
     this.logger = winston.createLogger({
       level: 'info',
       format: winston.format.combine(
@@ -51,9 +46,11 @@ export class LoggerService implements NestLoggerService {
       ),
       transports: [
         new winston.transports.Console(),
-        new winston.transports.File({ filename: 'grpc-metrics.log' })
+        loggingWinston,
       ],
     });
+    
+
   }
 
   private generateRequestId(): string {

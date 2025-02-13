@@ -4,7 +4,6 @@ import { MicroserviceOptions, Server, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { DatabaseService } from './config/database.config';
 import  { config } from 'dotenv';
-import { GrpcReflectionModule } from 'nestjs-grpc-reflection';
 import { addReflectionToGrpcConfig } from 'nestjs-grpc-reflection';
 
 config();
@@ -21,24 +20,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
 
-
-
-
-//  app.connectMicroservice<MicroserviceOptions>({
-//     transport: Transport.GRPC,
-//     options: {
-//       package: 'coupon',
-//       protoPath: join(__dirname, 'proto/coupon_stream.proto'),
-//       url: `${process.env.GRPC_HOST}:${process.env.GRPC_PORT}`,
-//     },
-//   });
-
   const grpcConfig: MicroserviceOptions = {
     transport: Transport.GRPC,
     options: {
       package: 'coupon',
       protoPath: join(__dirname, 'proto/coupon_stream.proto'),
-      url: `${process.env.GRPC_HOST}:${process.env.GRPC_PORT}`,
+      url: `${process.env.GRPC_HOST}:${process.env.PORT}`,
     },
   };
 
@@ -51,8 +38,8 @@ async function bootstrap() {
 
 
 
-  console.log(`HTTP server running on http://localhost:${process.env.PORT}`);
-  console.log(`gRPC server running on ${process.env.GRPC_HOST}:${process.env.GRPC_PORT}`);
+
+  console.log(`gRPC server is running on ${process.env.GRPC_HOST}:${process.env.PORT}`);
 
 }
 bootstrap();

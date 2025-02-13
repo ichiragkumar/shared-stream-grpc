@@ -16,7 +16,7 @@ export class DatabaseService {
       throw new Error('Missing MongoDB URI or Database Name in .env');
     }
 
-
+    console.log("i am trying to connect my  baby")
     
     const client = await MongoClient.connect(mongoUri);
     this.db = client.db(dbName);

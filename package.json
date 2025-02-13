@@ -22,9 +22,11 @@
     "postbuild": "cp -r ./src/proto ./dist/proto"
   },
   "dependencies": {
+    "@google-cloud/logging-winston": "^6.0.0",
     "@grpc/grpc-js": "^1.12.5",
     "@grpc/reflection": "^1.0.4",
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/microservices": "^11.0.6",
