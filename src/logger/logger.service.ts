@@ -2,10 +2,7 @@ import { Injectable, LoggerService as NestLoggerService } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as winston from 'winston';
-
 import { LoggingWinston } from '@google-cloud/logging-winston';
-
-
 
 interface RequestMetrics {
   requestId: string;
@@ -22,9 +19,6 @@ interface RequestMetrics {
   status?: 'active' | 'completed' | 'error';
 }
 
-
-
-
 @Injectable()
 export class LoggerService implements NestLoggerService {
   private logger: winston.Logger;
@@ -33,24 +27,31 @@ export class LoggerService implements NestLoggerService {
   constructor() {
     this.activeRequests = new Map();
 
-    const loggingWinston = new LoggingWinston({
-      projectId: 'waw-backend-stage',
-      logName: 'logs-metrics',
-    });
+    // Dynamically configure transports based on environment
+    const transports: winston.transport[] = [new winston.transports.Console()];
 
+    if (process.env.NODE_ENV === 'production') {
+      // Use Google Cloud Logging in production
+      try {
+        const loggingWinston = new LoggingWinston({
+          projectId: 'waw-backend-stage',
+          logName: 'logs-metrics',
+        });
+        transports.push(loggingWinston);
+      } catch (error) {
+        console.error('Failed to initialize Google Cloud Logging:', error.message);
+      }
+    }
+
+    // Initialize the logger with configured transports
     this.logger = winston.createLogger({
       level: 'info',
       format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.json()
       ),
-      transports: [
-        new winston.transports.Console(),
-        loggingWinston,
-      ],
+      transports,
     });
-    
-
   }
 
   private generateRequestId(): string {
@@ -59,25 +60,25 @@ export class LoggerService implements NestLoggerService {
 
   private calculatePerformanceScore(metrics: RequestMetrics): number {
     if (!metrics.latency) return 0;
-    
+
     // Base score starts at 5
     let score = 5;
-    
+
     // Deduct points based on latency
-    if (metrics.latency > 5000) score -= 2;       // > 5s
-    else if (metrics.latency > 2000) score -= 1;  // > 2s
-    
+    if (metrics.latency > 5000) score -= 2; // > 5s
+    else if (metrics.latency > 2000) score -= 1; // > 2s
+
     // Deduct for errors
     if (metrics.errorCount && metrics.errorCount > 0) {
       score -= Math.min(3, metrics.errorCount);
     }
-    
+
     // Adjust for event throughput if streaming
     if (metrics.eventsEmitted) {
       const eventsPerSecond = (metrics.eventsEmitted / (metrics.latency / 1000));
       if (eventsPerSecond < 1) score -= 1;
     }
-    
+
     return Math.max(1, Math.min(5, score));
   }
 
@@ -99,17 +100,17 @@ export class LoggerService implements NestLoggerService {
       userId,
       eventsEmitted: 0,
       errorCount: 0,
-      status: 'active'
+      status: 'active',
     };
-    
+
     this.activeRequests.set(requestId, metrics);
-    
+
     this.logger.info('gRPC Request Started', {
       ...metrics,
       timestamp: new Date().toISOString(),
-      type: 'REQUEST_START'
+      type: 'REQUEST_START',
     });
-    
+
     return requestId;
   }
 
@@ -118,14 +119,14 @@ export class LoggerService implements NestLoggerService {
     if (!metrics) return;
 
     metrics.eventsEmitted = (metrics.eventsEmitted || 0) + 1;
-    
+
     this.logger.info('Stream Event', {
       requestId,
       eventType,
       eventNumber: metrics.eventsEmitted,
       elapsedTime: Date.now() - metrics.startTime,
       ...details,
-      type: 'STREAM_EVENT'
+      type: 'STREAM_EVENT',
     });
   }
 
@@ -135,13 +136,13 @@ export class LoggerService implements NestLoggerService {
 
     metrics.errorCount = (metrics.errorCount || 0) + 1;
     metrics.status = 'error';
-    
+
     this.logger.error('Stream Error', {
       requestId,
       error: error.message,
       stack: error.stack,
       metrics,
-      type: 'STREAM_ERROR'
+      type: 'STREAM_ERROR',
     });
   }
 
@@ -161,8 +162,8 @@ export class LoggerService implements NestLoggerService {
         duration: `${metrics.latency}ms`,
         eventsEmitted: metrics.eventsEmitted,
         errorCount: metrics.errorCount,
-        performanceScore: `${metrics.performanceScore}/5`
-      }
+        performanceScore: `${metrics.performanceScore}/5`,
+      },
     });
 
     this.activeRequests.delete(requestId);
