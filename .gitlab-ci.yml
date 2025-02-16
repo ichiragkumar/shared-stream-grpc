@@ -11,7 +11,7 @@ stages:
 
 .deploy_cloud_run: &deploy_cloud_run
   - gcloud builds submit --tag $GITLAB_IMAGE_TAG
-  # - cat $CLOUD_RUN_ENVS_BASE
+  - cat $CLOUD_RUN_ENVS_BASE
   - python3 $JOIN_ENVS_PY $CLOUD_RUN_ENV $CLOUD_RUN_ENVS_MAIN > .env.yaml
   - gcloud run services update $CLOUD_RUN_SERVICE_ID-svc-grpc  --image $GITLAB_IMAGE_TAG --env-vars-file=.env.yaml --region=$CLOUD_RUN_REGION --platform managed --port=$CLOUD_RUN_PORT
 
