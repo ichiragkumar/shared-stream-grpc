@@ -1,20 +1,42 @@
-image: alpine:latest
 stages:
   - deploy
+  - test
 
-before_script:
-  - apk update
-  - apk add --no-cache openssh  # Install OpenSSH package to get ssh-keyscan
-  - mkdir -p ~/.ssh
-  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-  - chmod 600 ~/.ssh/id_rsa
-  - ssh-keyscan -H 34.77.95.113 >> ~/.ssh/known_hosts
+###Actions As Functions 
 
-deploy:
+.gcp_configuration: &gcp_configuration
+  - echo "$GOOGLE_CLOUD_CREDENTIALS" > gcloud-service-key.json
+  - gcloud auth activate-service-account --key-file gcloud-service-key.json
+  - gcloud config set project $FIREBASE_PROJECT_ID
+
+.deploy_cloud_run: &deploy_cloud_run
+  - gcloud builds submit --tag $GITLAB_IMAGE_TAG
+  # - cat $CLOUD_RUN_ENVS_BASE
+  - python3 $JOIN_ENVS_PY $CLOUD_RUN_ENV $CLOUD_RUN_ENVS_MAIN > .env.yaml
+  - gcloud run services update $CLOUD_RUN_SERVICE_ID-svc-grpc  --image $GITLAB_IMAGE_TAG --env-vars-file=.env.yaml --region=$CLOUD_RUN_REGION --platform managed --port=$CLOUD_RUN_PORT
+
+
+### Templates
+
+.deploy_template:
   stage: deploy
-  script:
-    - echo "Starting deployment..."
-    - ssh -o StrictHostKeyChecking=no grpc@34.77.95.113 "cd $REMOTE_PATH && git pull && pm2 restart all"
+  image: google/cloud-sdk:471.0.0
+  environment:
+    name: $CI_COMMIT_BRANCH
+  variables:
+    GITLAB_IMAGE_TAG: gcr.io/$FIREBASE_PROJECT_ID/$CLOUD_RUN_SERVICE_ID/$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_CLOUD_CREDENTIALS
+    FIREBASE_PROJECT_ID: $FIREBASE_PROJECT_ID
+#############################Actiond/Conditions#####################
+
+deploy_dev:
+  extends: .deploy_template
+
   rules:
-   - if: '$CI_COMMIT_REF_NAME == "GS-1-gRPC-services"'
- 
+    - if: $CI_COMMIT_BRANCH == 'GS-1-gRPC-services'
+  before_script:
+    - *gcp_configuration
+  script:
+    - *deploy_cloud_run
+
+    
