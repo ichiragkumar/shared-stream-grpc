@@ -275,6 +275,7 @@ streamActiveCouponsStream(data: User, metadata: Metadata): Observable<ActiveCoup
   return new Observable((subscriber) => {
     this.couponService.streamWalletService(data).subscribe({
       next: (walletBalance) => {
+
         this.logger.logStreamEvent(requestId, 'WALLET_BALANCE_UPDATE', {
           userId: data.userId,
           balance: walletBalance

@@ -3,6 +3,7 @@ import { Db } from 'mongodb';
 import { LoggerService } from '@nestjs/common';
 import { ZoneStreamResponse, UserPrefrences } from 'src/generated/coupon_stream';
 import { DEFAUlT_SETTINGS } from 'src/config/constant';
+import { validDocumentId } from 'src/utils/validDocumentid';
 
 export function streamZones(db: Db, userPrefrences: UserPrefrences,logger: LoggerService): Observable<ZoneStreamResponse> {
   return new Observable(subscriber => {
@@ -27,8 +28,9 @@ export function streamZones(db: Db, userPrefrences: UserPrefrences,logger: Logge
         const fetchStartTime = Date.now();
 
 
-        const zoneDocuments = db.collection('zones')
+        const zoneDocuments = db.collection('businesses')
           .find({});
+
 
         let hasZones = false;
         for await (const document of zoneDocuments) {

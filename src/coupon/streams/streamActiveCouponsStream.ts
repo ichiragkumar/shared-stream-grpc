@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { User, ActiveCouponStreamResponse } from '../../generated/coupon_stream';
 import { USER_COUPON_STATUS } from 'src/config/constant';
 import { LoggerService } from '@nestjs/common';
@@ -27,13 +27,14 @@ export function streamActiveCouponsStream(db: Db, data: User, logger:LoggerServi
 
 
         const userCouponDocument = {
-          userId, 
+          userId : new ObjectId(userId),
           status: { $in: USER_COUPON_STATUS }, 
           redeemedBySelfActivation: false 
         };
 
 
         const userExists = await db.collection('userCoupons').findOne(userCouponDocument);
+
         if (!userExists) {
           logger.warn('No matching coupons for user', {
             context: 'streamActiveCouponsStream',
@@ -89,7 +90,7 @@ export function streamActiveCouponsStream(db: Db, data: User, logger:LoggerServi
           [
             {
               $match: {
-                'fullDocument.userId': userId,
+                'fullDocument.userId': new ObjectId(userId),
                 'fullDocument.status': { $in: USER_COUPON_STATUS },
                 'fullDocument.redeemedBySelfActivation': false
               }

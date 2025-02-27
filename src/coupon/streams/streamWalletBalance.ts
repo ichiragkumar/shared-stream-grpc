@@ -1,11 +1,14 @@
 import { Observable } from 'rxjs';
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { Balance, WalletBalanceResponse, User } from 'src/generated/coupon_stream';
 import { STREAM_TYPE } from 'src/types';
 import { LoggerService } from '@nestjs/common';
 
+
 export function streamWalletBalance(db: Db, data: User,logger:LoggerService): Observable<WalletBalanceResponse> {
   return new Observable<WalletBalanceResponse>(subscriber => {
+
+
     const { userId } = data;
     const streamMetrics = {
       startTime: Date.now(),
@@ -23,8 +26,9 @@ export function streamWalletBalance(db: Db, data: User,logger:LoggerService): Ob
     (async () => {
       try {
         const fetchStartTime = Date.now();
-
-        const userWalletDocument = await db.collection('wallets').findOne({ userId });
+            const userWalletDocument = await db.collection('wallets').findOne({
+              userId: new ObjectId(userId)
+            });
 
         if (!userWalletDocument) {
           logger.warn('No wallet found for user', {
@@ -38,6 +42,8 @@ export function streamWalletBalance(db: Db, data: User,logger:LoggerService): Ob
             streamType: STREAM_TYPE.BASE,
           });
         } else {
+
+
           const availableBalances: Balance = userWalletDocument.availableBalances || { USD: 0, EGP: 0 };
           const blockedBalances: Balance = userWalletDocument.blockedBalances || { USD: 0, EGP: 0 };
 
@@ -60,7 +66,7 @@ export function streamWalletBalance(db: Db, data: User,logger:LoggerService): Ob
         }
 
         const changeStream = db.collection('wallets').watch(
-          [{ $match: { 'fullDocument.userId': userId } }],
+          [{ $match: { 'fullDocument.userId': new ObjectId(userId) } }],
           { fullDocument: 'updateLookup' }
         );
 

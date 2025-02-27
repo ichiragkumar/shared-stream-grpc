@@ -43,7 +43,7 @@ export class LoggerService implements NestLoggerService {
       }
     }
 
-    // Initialize the logger with configured transports
+
     this.logger = winston.createLogger({
       level: 'info',
       format: winston.format.combine(

@@ -14,6 +14,8 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, userPrefrences: Use
     const languageCode = userPrefrences?.languageCode || DEFAUlT_SETTINGS.LANGUAGE_CODE;
     const brightness = userPrefrences?.brightness || DEFAUlT_SETTINGS.BRIGHTNESS;
 
+
+
    
     const streamMetrics = {
       startTime: Date.now(),

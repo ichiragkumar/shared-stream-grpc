@@ -31,6 +31,7 @@
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/microservices": "^11.0.6",
     "@nestjs/platform-express": "^11.0.1",
+    "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
     "grpc-health-check": "^2.0.2",
     "jsonwebtoken": "^9.0.2",

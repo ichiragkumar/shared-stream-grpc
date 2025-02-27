@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { LoggerService } from '@nestjs/common';
 import { TicketStreamResponse, User } from 'src/generated/coupon_stream';
 
@@ -25,7 +25,7 @@ export function streamUserTickets(db: Db, data: User, logger: LoggerService): Ob
 
 
         const ticketDocuments = db.collection('tickets')
-          .find({ userId });
+          .find({ userId:new ObjectId(userId) });
 
         let hasTickets = false;
         for await (const document of ticketDocuments) {
@@ -86,7 +86,7 @@ export function streamUserTickets(db: Db, data: User, logger: LoggerService): Ob
 
 
     const changeStream = db.collection('tickets').watch(
-      [{ $match: { 'fullDocument.userId': userId } }],
+      [{ $match: { 'fullDocument.userId': new ObjectId(userId) } }],
       { fullDocument: 'updateLookup' }
     );
 

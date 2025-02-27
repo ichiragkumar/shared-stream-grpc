@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { MoreCouponRequest, User } from '../../generated/coupon_stream';
 import { LoggerService } from '@nestjs/common';
 import { STREAM_TYPE } from 'src/types';
@@ -27,7 +27,7 @@ export function streamMoreCouponRequestsService(
       try {
         const fetchStartTime = Date.now();
         let userCouponDocument = false;
-        const userCouponDocuments = db.collection('moreCouponsRequests').find({ userId });
+        const userCouponDocuments = db.collection('moreCouponsRequests').find({ userId : new ObjectId(userId) });
         for await (const document of userCouponDocuments) {
           userCouponDocument = true;
           streamMetrics.initialDocumentsCount++;
@@ -78,7 +78,7 @@ export function streamMoreCouponRequestsService(
           [
             {
               $match: {
-                'fullDocument.userId': userId,
+                'fullDocument.userId': new ObjectId(userId),
               },
             },
           ],

@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { LoggerService } from '@nestjs/common';
 import { BusinessBranchStreamResponse, UserPrefrences } from 'src/generated/coupon_stream';
 import { DEFAUlT_SETTINGS } from 'src/config/constant';
@@ -127,9 +127,9 @@ export function streamBusinessBranches(
 
 
       const businessDetails = await db.collection('businesses').findOne(
-        { _id: change.fullDocument.businessId },
-        { projection: { contractTypes: 1 } }
+        { _id: change.fullDocument.businessId }
       );
+
 
       const updatedBranch = {
         ...change.fullDocument,
