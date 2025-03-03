@@ -3,7 +3,7 @@ import { Db } from 'mongodb';
 import { LoggerService } from '@nestjs/common';
 import { ZoneStreamResponse, UserPrefrences } from 'src/generated/coupon_stream';
 import { DEFAUlT_SETTINGS } from 'src/config/constant';
-import { validDocumentId } from 'src/utils/validDocumentid';
+
 
 export function streamZones(db: Db, userPrefrences: UserPrefrences,logger: LoggerService): Observable<ZoneStreamResponse> {
   return new Observable(subscriber => {
