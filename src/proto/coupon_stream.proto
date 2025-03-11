@@ -15,14 +15,11 @@ service CouponStreamService {
 
   rpc StreamMoreCouponRequests(User) returns (stream MoreCouponRequest);
 
-
   rpc ActiveCouponIssuesWithBusinessesStream(UserPrefrences) returns (stream CouponIssueWithBusiness);
-
 
   rpc WalletStream(User) returns (stream WalletBalanceResponse);
 
   rpc StreamActiveDrawn(UserPrefrences) returns (stream ActiveDrawnResponse);
-
 
   rpc TicketsStream(User) returns (stream TicketStreamResponse);
 
@@ -30,12 +27,13 @@ service CouponStreamService {
 
   rpc BusinessBranchStream(UserPrefrences) returns (stream BusinessBranchStreamResponse);
 
+  rpc StreamUserCarts(User) returns (stream UserCartStreamResponse);
 
 
+  rpc StreamUserNotifications(UserIdOptional) returns (stream UserNotificationStreamResponse);
 
 }
 
-//NOTE: List of statuses to filter, e.g., 'active', 'suspended', 'ended'
 
 
 message StatusFilter {
@@ -261,6 +259,8 @@ message OpeningHours {
   string openTime = 1;
   string closeTime = 2;
 }
+
+
 message BusinessBranchStreamResponse {
   string id = 1;
   bool businessSuspended = 2;
@@ -272,4 +272,36 @@ message BusinessBranchStreamResponse {
   string createdAt = 8;
   repeated string contractTypes = 9;
   int32 streamType = 10;
+}
+
+message UserCartStreamItem {
+      string itemId= 1;
+      int32  amount = 2;
+      int32  purchasePrice = 3;
+      string currency = 4;
+      optional int32  feePrice = 5;
+      optional int32  taxAmount = 6;
+      int32 streamType = 7;
+}
+message UserCartStreamResponse {
+  repeated UserCartStreamItem items = 1;
+  int32 streamType = 2;
+}
+
+
+message UserIdOptional {
+  optional string userId = 1;
+}
+
+message UserNotificationStreamResponse  {
+    string    id = 1;
+    bool      isRead = 2;
+    string    createdAt = 3;
+    string    title = 4;
+    string    body = 5;
+    optional  string image = 6;
+    string    topic = 7;
+    optional  string screen = 8;
+    optional  string userId = 9;
+    int32     streamType = 10;
 }

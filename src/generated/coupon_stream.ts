@@ -227,6 +227,38 @@ export interface BusinessBranchStreamResponse_OpeningHoursEntry {
   value: OpeningHours | undefined;
 }
 
+export interface UserCartStreamItem {
+  itemId: string;
+  amount: number;
+  purchasePrice: number;
+  currency: string;
+  feePrice?: number | undefined;
+  taxAmount?: number | undefined;
+  streamType: number;
+}
+
+export interface UserCartStreamResponse {
+  items: UserCartStreamItem[];
+  streamType: number;
+}
+
+export interface UserIdOptional {
+  userId?: string | undefined;
+}
+
+export interface UserNotificationStreamResponse {
+  id: string;
+  isRead: boolean;
+  createdAt: string;
+  title: string;
+  body: string;
+  image?: string | undefined;
+  topic: string;
+  screen?: string | undefined;
+  userId?: string | undefined;
+  streamType: number;
+}
+
 export const COUPON_PACKAGE_NAME = "coupon";
 
 export interface CouponStreamServiceClient {
@@ -249,6 +281,10 @@ export interface CouponStreamServiceClient {
   zonesStream(request: UserPrefrences): Observable<ZoneStreamResponse>;
 
   businessBranchStream(request: UserPrefrences): Observable<BusinessBranchStreamResponse>;
+
+  streamUserCarts(request: User): Observable<UserCartStreamResponse>;
+
+  streamUserNotifications(request: UserIdOptional): Observable<UserNotificationStreamResponse>;
 }
 
 export interface CouponStreamServiceController {
@@ -271,6 +307,10 @@ export interface CouponStreamServiceController {
   zonesStream(request: UserPrefrences): Observable<ZoneStreamResponse>;
 
   businessBranchStream(request: UserPrefrences): Observable<BusinessBranchStreamResponse>;
+
+  streamUserCarts(request: User): Observable<UserCartStreamResponse>;
+
+  streamUserNotifications(request: UserIdOptional): Observable<UserNotificationStreamResponse>;
 }
 
 export function CouponStreamServiceControllerMethods() {
@@ -286,6 +326,8 @@ export function CouponStreamServiceControllerMethods() {
       "ticketsStream",
       "zonesStream",
       "businessBranchStream",
+      "streamUserCarts",
+      "streamUserNotifications",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

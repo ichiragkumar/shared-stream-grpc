@@ -12,7 +12,10 @@ import {
   User,
   TicketStreamResponse,
   ZoneStreamResponse,
-  BusinessBranchStreamResponse
+  BusinessBranchStreamResponse,
+  UserCartStreamResponse,
+  UserIdOptional,
+  UserNotificationStreamResponse
 } from "../generated/coupon_stream"
 import { Db } from 'mongodb';
 import { DatabaseService } from 'src/config/database.config';
@@ -27,6 +30,8 @@ import { LoggerService } from '../logger/logger.service';
 import { streamUserTickets } from './streams/streamUserTicket';
 import { streamZones } from './streams/streamZones';
 import { streamBusinessBranches } from './streams/streamBusinessBranches';
+import { streamUserNotifications } from './streams/streamUserNotifications';
+// import { streamUserCarts } from './streams/streamUserCarts';
 
 
 
@@ -107,6 +112,18 @@ export class CouponService {
   BusinessBranchStreamService(data: UserPrefrences): Observable<BusinessBranchStreamResponse> {
     this.logger.log('BusinessBranchStreamService called', { userPrefrences: data });
     return streamBusinessBranches(this.db, data, this.logger);
+  }
+
+
+  // UserCartStreamResponseService(data: User): Observable<UserCartStreamResponse[]> {
+  //   this.logger.log('UserCartStreamResponseService called', { user: data });
+  //   return streamUserCarts(this.db, data, this.logger);
+  // }
+
+
+  streamUserNotificationsService(data: UserIdOptional): Observable<UserNotificationStreamResponse> {
+    this.logger.log('streamUserNotificationsService called', { user: data });
+    return streamUserNotifications(this.db, data, this.logger);
   }
 
   

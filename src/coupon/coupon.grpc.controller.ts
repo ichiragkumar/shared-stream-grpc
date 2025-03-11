@@ -16,12 +16,17 @@ import {
   User,
   TicketStreamResponse,
   ZoneStreamResponse,
-  BusinessBranchStreamResponse
+  BusinessBranchStreamResponse,
+  UserCartStreamResponse,
+  UserCartStreamItem,
+  UserNotificationStreamResponse,
+  UserIdOptional
 } from "../generated/coupon_stream";
 import { LoggerService } from '../logger/logger.service';
 import { Metadata } from '@grpc/grpc-js';
 import { GrpcMethod } from '@nestjs/microservices';
 import { DatabaseService } from 'src/config/database.config';
+import { STREAM_TYPE } from 'src/types';
 
 
 
@@ -468,8 +473,103 @@ StreamActiveDrawn(data: UserPrefrences, metadata: Metadata): Observable<ActiveDr
       });
     });
   }
+
+
+
+
+//   @GrpcMethod('CouponStreamService', 'StreamUserCarts')
+//   UserCartStreamResponse(
+//   data: User,
+//   metadata: Metadata,
+// ): Observable<UserCartStreamResponse | UserCartStreamItem> {
+//   const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
+//   const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
+//   const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
+//   const userId = metadata.get('user-id')?.[0] as string;
+
+//   const requestId = this.logger.initializeRequest(
+//     'UserCartStreamResponse',
+//     userAgent,
+//     ipAddress,
+//     dns,
+//     userId,
+//   );
+
+//   return new Observable((subscriber) => {
+//     this.couponService.UserCartStreamResponseService(data).pipe(
+//       map((response: UserCartStreamResponse) => response.items) 
+//     ).subscribe({
+//       next: (userCartStreamItems: UserCartStreamItem[]) => {
+//         if (Array.isArray(userCartStreamItems)) {
+//           subscriber.next({
+//             items: userCartStreamItems,
+//             streamType: STREAM_TYPE.BASE,
+//           });
   
+//           this.logger.logStreamEvent(requestId, 'INITIAL_USER_CART_STREAM_RESPONSE', {
+//             totalItems: userCartStreamItems.length,
+//           });
+//         }
+//       },
+//       error: (error) => {
+//         this.logger.logError(requestId, error);
+//         subscriber.error(error);
+//       },
+//       complete: () => {
+//         this.logger.finalizeRequest(requestId);
+//         subscriber.complete();
+//       },
+//     });
+
+//   });
   
-  
+// }
+
+
+
+    @GrpcMethod('CouponStreamService', 'StreamUserNotifications')
+    StreamUserNotifications(data: UserIdOptional, metadata: Metadata): Observable<UserNotificationStreamResponse> {
+      const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
+      const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
+      const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
+      const userId = data ? data.userId || (metadata.get('user-id')?.[0] as string) : "";
+
+      const requestId = this.logger.initializeRequest(
+        'StreamUserNotifications',
+        userAgent,
+        ipAddress,
+        dns,
+        userId,
+      );
+
+      return new Observable((subscriber) => {
+        this.couponService.streamUserNotificationsService(data).subscribe({
+          next: (userNotificationStreamResponse) => {
+            this.logger.logStreamEvent(requestId, 'USER_NOTIFICATION', {
+              id: userNotificationStreamResponse.id,
+              isRead: userNotificationStreamResponse.isRead,
+              createdAt: userNotificationStreamResponse.createdAt,
+              title: userNotificationStreamResponse.title,
+              body: userNotificationStreamResponse.body,
+              image: userNotificationStreamResponse.image,
+              topic: userNotificationStreamResponse.topic,
+              screen: userNotificationStreamResponse.screen,
+              userId: userNotificationStreamResponse.userId,
+              streamType: userNotificationStreamResponse.streamType,
+            });
+            subscriber.next(userNotificationStreamResponse);
+          },
+          error: (error) => {
+            this.logger.logError(requestId, error);
+            subscriber.error(error);
+          },
+          complete: () => {
+            this.logger.finalizeRequest(requestId);
+            subscriber.complete();
+          },
+        });
+      });
+    }
+
 
 }
