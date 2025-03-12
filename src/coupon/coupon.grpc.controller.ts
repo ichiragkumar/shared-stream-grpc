@@ -551,7 +551,6 @@ StreamActiveDrawn(data: UserPrefrences, metadata: Metadata): Observable<ActiveDr
               createdAt: userNotificationStreamResponse.createdAt,
               title: userNotificationStreamResponse.title,
               body: userNotificationStreamResponse.body,
-              image: userNotificationStreamResponse.image,
               topic: userNotificationStreamResponse.topic,
               screen: userNotificationStreamResponse.screen,
               userId: userNotificationStreamResponse.userId,

@@ -252,7 +252,6 @@ export interface UserNotificationStreamResponse {
   createdAt: string;
   title: string;
   body: string;
-  image?: string | undefined;
   topic: string;
   screen?: string | undefined;
   userId?: string | undefined;
@@ -284,7 +283,7 @@ export interface CouponStreamServiceClient {
 
   streamUserCarts(request: User): Observable<UserCartStreamResponse>;
 
-  streamUserNotifications(request: UserIdOptional): Observable<UserNotificationStreamResponse>;
+  streamUserNotifications(request: User): Observable<UserNotificationStreamResponse>;
 }
 
 export interface CouponStreamServiceController {
@@ -310,7 +309,7 @@ export interface CouponStreamServiceController {
 
   streamUserCarts(request: User): Observable<UserCartStreamResponse>;
 
-  streamUserNotifications(request: UserIdOptional): Observable<UserNotificationStreamResponse>;
+  streamUserNotifications(request: User): Observable<UserNotificationStreamResponse>;
 }
 
 export function CouponStreamServiceControllerMethods() {

@@ -30,7 +30,7 @@ service CouponStreamService {
   rpc StreamUserCarts(User) returns (stream UserCartStreamResponse);
 
 
-  rpc StreamUserNotifications(UserIdOptional) returns (stream UserNotificationStreamResponse);
+  rpc StreamUserNotifications(User) returns (stream UserNotificationStreamResponse);
 
 }
 
@@ -299,9 +299,8 @@ message UserNotificationStreamResponse  {
     string    createdAt = 3;
     string    title = 4;
     string    body = 5;
-    optional  string image = 6;
-    string    topic = 7;
-    optional  string screen = 8;
-    optional  string userId = 9;
-    int32     streamType = 10;
+    string    topic = 6;
+    optional  string screen = 7;
+    optional  string userId = 8;
+    int32     streamType = 9;
 }
