@@ -242,8 +242,9 @@ export interface UserCartStreamResponse {
   streamType: number;
 }
 
-export interface UserIdOptional {
-  userId?: string | undefined;
+export interface MainUser {
+  userId: string;
+  userPrefrences: UserPrefrences | undefined;
 }
 
 export interface UserNotificationStreamResponse {
@@ -283,7 +284,7 @@ export interface CouponStreamServiceClient {
 
   streamUserCarts(request: User): Observable<UserCartStreamResponse>;
 
-  streamUserNotifications(request: User): Observable<UserNotificationStreamResponse>;
+  streamUserNotifications(request: MainUser): Observable<UserNotificationStreamResponse>;
 }
 
 export interface CouponStreamServiceController {
@@ -309,7 +310,7 @@ export interface CouponStreamServiceController {
 
   streamUserCarts(request: User): Observable<UserCartStreamResponse>;
 
-  streamUserNotifications(request: User): Observable<UserNotificationStreamResponse>;
+  streamUserNotifications(request: MainUser): Observable<UserNotificationStreamResponse>;
 }
 
 export function CouponStreamServiceControllerMethods() {

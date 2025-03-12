@@ -2,17 +2,23 @@ import { Observable } from 'rxjs';
 import { Db, ObjectId } from 'mongodb';
 import { LoggerService } from '@nestjs/common';
 import { STREAM_TYPE } from 'src/types';
-import { UserIdOptional, UserNotificationStreamResponse } from 'src/generated/coupon_stream';
+import {  MainUser, UserNotificationStreamResponse } from 'src/generated/coupon_stream';
+import { DEFAUlT_SETTINGS } from 'src/config/constant';
 
 const DEFAULT_USER_ID = new ObjectId('000000000000000000000000');
 
 export function streamUserNotifications(
     db: Db,
-    data: UserIdOptional,
+    data: MainUser,
     logger: LoggerService
 ): Observable<UserNotificationStreamResponse> {
     return new Observable<UserNotificationStreamResponse>(subscriber => {
-        let { userId } = data;
+        let { userId,userPrefrences  } = data;
+        const languageCode = userPrefrences?.languageCode || DEFAUlT_SETTINGS.LANGUAGE_CODE;
+        const brightness = userPrefrences?.brightness || DEFAUlT_SETTINGS.BRIGHTNESS;
+
+
+
 
         const streamMetrics = {
             startTime: Date.now(),
@@ -24,6 +30,8 @@ export function streamUserNotifications(
         logger.log('Stream initialization', {
             context: 'streamUserNotifications',
             userId,
+            languageCode,
+            brightness
         });
 
         (async () => {
@@ -85,7 +93,12 @@ export function streamUserNotifications(
 
 
                 for (const notificationDocument of notifications) {
-                    subscriber.next(mapUserNotificationResponse(notificationDocument, STREAM_TYPE.BASE));
+                    subscriber.next(mapUserNotificationResponse(
+                        notificationDocument, 
+                        STREAM_TYPE.BASE,
+                        languageCode,
+                        brightness
+                    ));
                 }
 
 
@@ -139,7 +152,7 @@ export function streamUserNotifications(
                                 timeSinceStart: Date.now() - streamMetrics.startTime,
                             });
                 
-                            subscriber.next(mapUserNotificationResponse(userNotification, streamType));
+                            subscriber.next(mapUserNotificationResponse(userNotification, streamType, languageCode, brightness));
                             break;
                 
                         case 'delete':
@@ -211,22 +224,28 @@ export function streamUserNotifications(
     });
 }
 
-
 function mapUserNotificationResponse(
     document: any,
-    streamType: number
-): UserNotificationStreamResponse {
+    streamType: number,
+    languageCode: string,
+    brightness: string
+  ): UserNotificationStreamResponse {
     return {
-        id: document._id?.toString() || '',
-        isRead: document.isRead ?? false,
-        createdAt: document.createdAt?.$date || document.createdAt || '',
-        title: document.content?.title?.en || '',
-        body: document.content?.body?.en || '',
-        topic: document.topic || '',
-        screen: document.screen || '',
-        userId: document.userId?.toString() || '',
-        streamType,
+      id: document._id?.toString() || '',
+      isRead: document.isRead ?? false,
+      createdAt: document.createdAt?.$date || document.createdAt || '',
+      title:
+        document.content?.title?.[languageCode] ||
+        document.content?.title?.en ||
+        '',
+      body:
+        document.content?.body?.[languageCode] ||
+        document.content?.body?.en ||
+        '',
+      topic: document.topic || '',
+      screen: document.screen || '',
+      userId: document.userId?.toString() || '',
+      streamType,
     };
-}
-
-
+  }
+  

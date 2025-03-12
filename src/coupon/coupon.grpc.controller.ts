@@ -20,7 +20,7 @@ import {
   UserCartStreamResponse,
   UserCartStreamItem,
   UserNotificationStreamResponse,
-  UserIdOptional
+  MainUser,
 } from "../generated/coupon_stream";
 import { LoggerService } from '../logger/logger.service';
 import { Metadata } from '@grpc/grpc-js';
@@ -528,7 +528,7 @@ StreamActiveDrawn(data: UserPrefrences, metadata: Metadata): Observable<ActiveDr
 
 
     @GrpcMethod('CouponStreamService', 'StreamUserNotifications')
-    StreamUserNotifications(data: UserIdOptional, metadata: Metadata): Observable<UserNotificationStreamResponse> {
+    StreamUserNotifications(data: MainUser, metadata: Metadata): Observable<UserNotificationStreamResponse> {
       const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
       const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
       const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';

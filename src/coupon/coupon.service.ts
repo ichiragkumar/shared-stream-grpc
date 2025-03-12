@@ -14,8 +14,8 @@ import {
   ZoneStreamResponse,
   BusinessBranchStreamResponse,
   UserCartStreamResponse,
-  UserIdOptional,
-  UserNotificationStreamResponse
+  UserNotificationStreamResponse,
+  MainUser
 } from "../generated/coupon_stream"
 import { Db } from 'mongodb';
 import { DatabaseService } from 'src/config/database.config';
@@ -121,7 +121,7 @@ export class CouponService {
   // }
 
 
-  streamUserNotificationsService(data: UserIdOptional): Observable<UserNotificationStreamResponse> {
+  streamUserNotificationsService(data: MainUser): Observable<UserNotificationStreamResponse> {
     this.logger.log('streamUserNotificationsService called', { user: data });
     return streamUserNotifications(this.db, data, this.logger);
   }
