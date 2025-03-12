@@ -477,55 +477,73 @@ StreamActiveDrawn(data: UserPrefrences, metadata: Metadata): Observable<ActiveDr
 
 
 
-//   @GrpcMethod('CouponStreamService', 'StreamUserCarts')
-//   UserCartStreamResponse(
-//   data: User,
-//   metadata: Metadata,
-// ): Observable<UserCartStreamResponse | UserCartStreamItem> {
-//   const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
-//   const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
-//   const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
-//   const userId = metadata.get('user-id')?.[0] as string;
+  @GrpcMethod('CouponStreamService', 'StreamUserCarts')
+  StreamUserCarts(
+    data: User,
+    metadata: Metadata,
+  ): Observable<UserCartStreamResponse> {
 
-//   const requestId = this.logger.initializeRequest(
-//     'UserCartStreamResponse',
-//     userAgent,
-//     ipAddress,
-//     dns,
-//     userId,
-//   );
 
-//   return new Observable((subscriber) => {
-//     this.couponService.UserCartStreamResponseService(data).pipe(
-//       map((response: UserCartStreamResponse) => response.items) 
-//     ).subscribe({
-//       next: (userCartStreamItems: UserCartStreamItem[]) => {
-//         if (Array.isArray(userCartStreamItems)) {
-//           subscriber.next({
-//             items: userCartStreamItems,
-//             streamType: STREAM_TYPE.BASE,
-//           });
+    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
+    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
+    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
+    const userId = metadata.get('user-id')?.[0] as string;
   
-//           this.logger.logStreamEvent(requestId, 'INITIAL_USER_CART_STREAM_RESPONSE', {
-//             totalItems: userCartStreamItems.length,
-//           });
-//         }
-//       },
-//       error: (error) => {
-//         this.logger.logError(requestId, error);
-//         subscriber.error(error);
-//       },
-//       complete: () => {
-//         this.logger.finalizeRequest(requestId);
-//         subscriber.complete();
-//       },
-//     });
-
-//   });
+    const requestId = this.logger.initializeRequest(
+      'UserCartStreamResponse',
+      userAgent,
+      ipAddress,
+      dns,
+      userId,
+    );
   
-// }
-
-
+    return new Observable((subscriber) => {
+      this.couponService.UserCartStreamResponseService(data).subscribe({
+        next: (response: UserCartStreamResponse) => {
+          if (response?.items?.length) {
+            const filteredItems = response.items.filter(
+              (item) => item.itemId && item.amount
+            );
+  
+            if (filteredItems.length) {
+              const streamType = filteredItems[0].streamType;
+  
+              subscriber.next({
+                items: filteredItems,
+                streamType,
+              });
+  
+              this.logger.logStreamEvent(
+                requestId,
+                'USER_CART_STREAM_RESPONSE',
+                {
+                  totalItems: filteredItems.length,
+                  streamType,
+                  items: filteredItems.map((item) => ({
+                    itemId: item.itemId,
+                    amount: item.amount,
+                    purchasePrice: item.purchasePrice,
+                    currency: item.currency,
+                    feePrice: item.feePrice || 0,
+                    taxAmount: item.taxAmount || 0,
+                  })),
+                },
+              );
+            }
+          }
+        },
+        error: (error) => {
+          this.logger.logError(requestId, error);
+          subscriber.error(error);
+        },
+        complete: () => {
+          this.logger.finalizeRequest(requestId);
+          subscriber.complete();
+        },
+      });
+    });
+  }
+  
 
     @GrpcMethod('CouponStreamService', 'StreamUserNotifications')
     StreamUserNotifications(data: MainUser, metadata: Metadata): Observable<UserNotificationStreamResponse> {

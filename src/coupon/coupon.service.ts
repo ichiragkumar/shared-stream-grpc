@@ -31,6 +31,7 @@ import { streamUserTickets } from './streams/streamUserTicket';
 import { streamZones } from './streams/streamZones';
 import { streamBusinessBranches } from './streams/streamBusinessBranches';
 import { streamUserNotifications } from './streams/streamUserNotifications';
+import { streamUserCarts } from './streams/streamUserCarts';
 // import { streamUserCarts } from './streams/streamUserCarts';
 
 
@@ -114,12 +115,13 @@ export class CouponService {
     return streamBusinessBranches(this.db, data, this.logger);
   }
 
+  UserCartStreamResponseService(data: User): Observable<UserCartStreamResponse> {
+    this.logger.log('UserCartStreamResponseService called', { user: data });
+    return streamUserCarts(this.db, data, this.logger);
+  }
+  
 
-  // UserCartStreamResponseService(data: User): Observable<UserCartStreamResponse[]> {
-  //   this.logger.log('UserCartStreamResponseService called', { user: data });
-  //   return streamUserCarts(this.db, data, this.logger);
-  // }
-
+  
 
   streamUserNotificationsService(data: MainUser): Observable<UserNotificationStreamResponse> {
     this.logger.log('streamUserNotificationsService called', { user: data });

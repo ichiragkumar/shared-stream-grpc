@@ -30,6 +30,7 @@ service CouponStreamService {
   rpc StreamUserCarts(User) returns (stream UserCartStreamResponse);
 
 
+
   rpc StreamUserNotifications(MainUser) returns (stream UserNotificationStreamResponse);
 
 }
@@ -275,19 +276,20 @@ message BusinessBranchStreamResponse {
 }
 
 message UserCartStreamItem {
-      string itemId= 1;
-      int32  amount = 2;
-      int32  purchasePrice = 3;
-      string currency = 4;
-      optional int32  feePrice = 5;
-      optional int32  taxAmount = 6;
-      int32 streamType = 7;
+  string itemId = 1;
+  int32 amount = 2;
+  int32 purchasePrice = 3;
+  string currency = 4;
+  optional int32 feePrice = 5;
+  optional float taxAmount = 6;
+  int32 streamType = 7;
 }
+
+
 message UserCartStreamResponse {
   repeated UserCartStreamItem items = 1;
   int32 streamType = 2;
 }
-
 
 
 message  MainUser {
