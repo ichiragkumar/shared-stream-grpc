@@ -143,30 +143,37 @@ export function streamActiveDrawn(db: Db, userPrefrences: UserPrefrences, logger
 }
 
 
-function mapActiveDrawn(doc: any, languageCode: string, brightness: string, streamType:number): ActiveDrawnResponse {
+function mapActiveDrawn(doc: any, languageCode: string, brightness: string, streamType: number): ActiveDrawnResponse {
   return {
-    id: doc._id?.toString() || '',
-    contractId: doc.contractId || '',
-    businessId: doc.businessId || '',
+    id: doc._id ?? null,
+    contractId: doc.contractId ?? null,
+    businessId: doc.businessId ?? null,
     type: doc.type || '',
     subtype: doc.subtype || '',
     currency: doc.currency || '',
-    title: doc.title?.[languageCode] || doc.title?.en || 'Unknown Title',
-    openAt: doc.openAt?.$date || doc.openAt || '',
-    predrawStartAt: doc.predrawStartAt?.$date || doc.predrawStartAt || '',
-    drawStartAt: doc.drawStartAt?.$date || doc.drawStartAt || '',
-    contestsStartAt: doc.contestsStartAt?.$date || doc.contestsStartAt || '',
-    descriptionFile: doc.descriptionFile?.[languageCode] || doc.descriptionFile?.en || 'No Description',
-    logo: doc.logo?.[brightness]?.[languageCode] || doc.logo?.[brightness]?.en || '',
+    title: doc.title?.[languageCode] || 'Unknown Title',
+    openAt: doc.openAt?.$date || doc.openAt || null,
+    predrawStartAt: doc.predrawStartAt?.$date || doc.predrawStartAt || null,
+    drawStartAt: doc.drawStartAt?.$date || doc.drawStartAt || null,
+    contestsStartAt: doc.contestsStartAt?.$date || doc.contestsStartAt || null,
+    descriptionFile: doc.descriptionFile?.[languageCode] || 'No Description',
+    logo: doc.logo?.[brightness]?.[languageCode] || '',
     amountOfNumbersByParticipant: doc.amountOfNumbersByParticipant ?? 0,
-    grandDrawFreeTicketSpendingsAmount: doc.grandDrawFreeTicketSpendingsAmount ?? undefined,
+    grandDrawFreeTicketSpendingsAmount: doc.grandDrawFreeTicketSpendingsAmount ?? null,
     drawNumbersCount: doc.drawNumbersCount ?? 0,
     participantsCount: doc.participantsCount ?? 0,
     amountOfChosenNumbers: doc.amountOfChosenNumbers ?? 0,
     totalPrizesValue: doc.totalPrizesValue ?? 0,
     totalPrizesAmount: doc.totalPrizesAmount ?? 0,
-    createdAt: doc.createdAt?.$date || doc.createdAt || '',
+    createdAt: doc.createdAt?.$date || doc.createdAt || null,
     status: doc.status || '',
+    specialEvent: doc.specialEvent
+    ? {
+        cardColor: doc.specialEvent.cardColor,
+        title: doc.specialEvent.title?.[languageCode],
+        shortDescription: doc.specialEvent.shortDescription?.[languageCode],
+      }
+    : undefined,
     streamType: streamType
   };
 }

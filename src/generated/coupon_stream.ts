@@ -151,6 +151,12 @@ export interface WalletBalanceResponse {
   streamType: number;
 }
 
+export interface SpecialEvent {
+  cardColor: string;
+  title: string;
+  shortDescription: string;
+}
+
 export interface ActiveDrawnResponse {
   id: string;
   contractId: string;
@@ -174,6 +180,7 @@ export interface ActiveDrawnResponse {
   totalPrizesAmount: number;
   createdAt: string;
   status: string;
+  specialEvent: SpecialEvent | undefined;
   streamType: number;
 }
 
