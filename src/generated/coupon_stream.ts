@@ -109,6 +109,7 @@ export interface ActiveCouponStreamResponse {
   expireAt: string;
   createdAt: string;
   purchasedAt: string;
+  sellPriceAmount: number;
   streamType: number;
 }
 

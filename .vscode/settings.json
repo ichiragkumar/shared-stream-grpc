@@ -7,6 +7,10 @@
     },
     "terminal.integrated.env.windows": {
       "PATH": "./node_modules/.bin;${env:PATH}"
-    }
+    },
+    "cSpell.words": [
+      "predraw",
+      "Spendings"
+    ]
   }
   

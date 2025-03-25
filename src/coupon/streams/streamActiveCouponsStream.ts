@@ -33,9 +33,11 @@ export function streamActiveCouponsStream(db: Db, data: User, logger:LoggerServi
         };
 
 
-        const userExists = await db.collection('userCoupons').findOne(userCouponDocument);
 
-        if (!userExists) {
+        const initialDocuments =await db.collection('userCoupons').find(userCouponDocument)
+        .toArray();
+
+        if (!initialDocuments) {
           logger.warn('No matching coupons for user', {
             context: 'streamActiveCouponsStream',
             userId,
@@ -57,15 +59,43 @@ export function streamActiveCouponsStream(db: Db, data: User, logger:LoggerServi
             expireAt:"",
             createdAt:"",
             purchasedAt:"",
+            sellPriceAmount: 0,
             streamType: STREAM_TYPE.BASE
           });
           subscriber.complete();
           return;
         }
 
+        const couponIssueIds = initialDocuments.map(userCouponEachDocument=> userCouponEachDocument.couponIssueId)
+        .filter(couponIssueId => couponIssueId);
 
-        const initialDocuments = db.collection('userCoupons').find(userCouponDocument);
+
+        const couponIssues = await db.collection('couponIssues')
+          .find({ _id: { $in: couponIssueIds } })
+          .toArray();
+
+
+
+
+
+        const couponIssueMap = new Map(
+          couponIssues.map(issue => [issue._id.toString(), issue])
+        );
+
+
         for await (const doc of initialDocuments) {
+
+          const couponIssueDocument = couponIssueMap.get(doc.couponIssueId.toString());
+
+          if (!couponIssueDocument) {
+            logger.warn('Coupon issue document not found', {
+              context: 'streamActiveCouponsStream',
+              couponIssueId: doc.couponIssueId,
+            });
+            return;
+          }
+
+
           streamMetrics.initialDocumentsCount++;
           logger.log('Initial document emission', {
             context: 'streamActiveCouponsStream',
@@ -75,7 +105,7 @@ export function streamActiveCouponsStream(db: Db, data: User, logger:LoggerServi
             documentNumber: streamMetrics.initialDocumentsCount,
             elapsedTime: Date.now() - fetchStartTime,
           });
-          subscriber.next(mapToCouponIssue(doc, 0));
+          subscriber.next(mapToCouponIssue(doc,couponIssueDocument.sellPriceAmount || 0, STREAM_TYPE.BASE));
         }
         logger.log('Initial fetch completed', {
           context: 'streamActiveCouponsStream',
@@ -104,7 +134,7 @@ export function streamActiveCouponsStream(db: Db, data: User, logger:LoggerServi
         });
 
 
-        changeStream.on('change', (change: any) => {
+        changeStream.on('change',async (change: any) => {
           if (!change.fullDocument) {
             logger.warn('Change event without full document', {
               context: 'streamActiveCouponsStream',
@@ -116,6 +146,18 @@ export function streamActiveCouponsStream(db: Db, data: User, logger:LoggerServi
 
 
           if (change.fullDocument) {
+            const couponIssueDetails =await db.collection('couponIssues').findOne({
+              _id: change.fullDocument.couponIssueId
+            });
+
+            if (!couponIssueDetails) {
+              logger.warn('Coupon issue details not found', {
+                context: 'streamActiveCouponsStream',
+                couponIssueId: change.fullDocument.couponIssueId,
+              });
+              return;
+            }
+
             logger.log('Change event processing', {
               context: 'streamActiveCouponsStream',
               operationType: change.operationType,
@@ -124,7 +166,7 @@ export function streamActiveCouponsStream(db: Db, data: User, logger:LoggerServi
               timeSinceStart: Date.now() - streamMetrics.startTime,
             });
   
-            subscriber.next(mapToCouponIssue(change.fullDocument,1));
+            subscriber.next(mapToCouponIssue(change.fullDocument,couponIssueDetails.sellPriceAmount || 0, STREAM_TYPE.BASE));
           }
         });
 
@@ -159,7 +201,6 @@ export function streamActiveCouponsStream(db: Db, data: User, logger:LoggerServi
               memoryUsage: process.memoryUsage(),
             },
           });
-          console.log('Cleaning up change stream');
           changeStream.close();
         });
 
@@ -185,13 +226,13 @@ export function streamActiveCouponsStream(db: Db, data: User, logger:LoggerServi
   });
 }
 
-function mapToCouponIssue(doc: any, streamType: number): ActiveCouponStreamResponse {
+function mapToCouponIssue(doc: any, sellPriceAmount: number, streamType: number): ActiveCouponStreamResponse {
   return {
     id: doc._id?.toString(),
     redemptionInfo: doc.redemptionInfo || null,
     code: doc.code,
     businessId: doc.businessId,
-    couponIssueId: doc._id?.toString(),
+    couponIssueId:doc.couponIssueId,
     redeemedBySelfActivation: doc.redeemedBySelfActivation,
     purchasePrice: doc.purchasePrice,
     purchaseCurrency: doc.purchaseCurrency,
@@ -200,6 +241,7 @@ function mapToCouponIssue(doc: any, streamType: number): ActiveCouponStreamRespo
     expireAt: doc.expireAt,
     createdAt: doc.createdAt,
     purchasedAt: doc.purchasedAt,
+    sellPriceAmount :parseFloat(sellPriceAmount.toFixed(2)),
     streamType: streamType
   };
 }

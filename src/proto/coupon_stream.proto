@@ -91,6 +91,8 @@ message UserFilter {
 message User{
   string userId = 1;
 }
+
+
 message UserPrefrences {
  optional string languageCode = 1;
  optional string brightness = 2;
@@ -144,7 +146,8 @@ message ActiveCouponStreamResponse {
   string expireAt = 11;
   string createdAt = 12;
   string purchasedAt = 13;
-  int32 streamType = 14;
+  int32 sellPriceAmount = 14;
+  int32 streamType = 15;
 }
 
 message CouponIssueWithBusiness {
