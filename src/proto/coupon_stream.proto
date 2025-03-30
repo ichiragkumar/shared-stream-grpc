@@ -238,10 +238,11 @@ message TicketStreamResponse {
   string drawId = 3;
   string drawType = 4;
   bool isDrawClosed = 5;
-  repeated int32 drawNumbers = 6;
+  repeated string drawNumbers = 6;
   string createdAt = 7;
   string status = 8;
-  int32 streamType = 9;
+  string winningDrawNumber = 9;
+  int32 streamType = 10;
 }
 
 message Location {

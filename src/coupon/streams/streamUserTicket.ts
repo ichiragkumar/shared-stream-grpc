@@ -57,6 +57,7 @@ export function streamUserTickets(db: Db, data: User, logger: LoggerService): Ob
             drawNumbers: [],
             createdAt: '',
             status: '',
+            winningDrawNumber: '',
             streamType: 0,
           });
         }
@@ -150,17 +151,19 @@ export function streamUserTickets(db: Db, data: User, logger: LoggerService): Ob
     });
   });
 }
-
-function mapTicketResponse(document: any,streamType:number): TicketStreamResponse {
+function mapTicketResponse(document: any, streamType: number): TicketStreamResponse {
   return {
-    id: document._id?.toString() || '',
-    userId: document.userId || '',
-    drawId: document.drawId || '',
-    drawType: document.drawType || '',
+    id: document._id?.toString(),
+    userId: document.userId.toString(),
+    drawId: document.drawId.toString(),
+    drawType: document.drawType,
     isDrawClosed: document.isDrawClosed ?? false,
-    drawNumbers: document.drawNumbers ?? [],
-    createdAt: document.createdAt?.$date || document.createdAt || '',
-    status: document.status || '',
+    drawNumbers: Array.isArray(document.drawNumbers)
+    ? document.drawNumbers.map(num => String(num))
+    : [], 
+    createdAt: document.createdAt?.$date || document.createdAt,
+    status: document.status,
+    winningDrawNumber: document.winningDrawNumber,
     streamType: streamType,
   };
 }

@@ -191,9 +191,10 @@ export interface TicketStreamResponse {
   drawId: string;
   drawType: string;
   isDrawClosed: boolean;
-  drawNumbers: number[];
+  drawNumbers: string[];
   createdAt: string;
   status: string;
+  winningDrawNumber: string;
   streamType: number;
 }
 
