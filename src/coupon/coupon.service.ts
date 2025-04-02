@@ -15,7 +15,9 @@ import {
   BusinessBranchStreamResponse,
   UserCartStreamResponse,
   UserNotificationStreamResponse,
-  MainUser
+  MainUser,
+  EnvironmentResponse,
+  EmptyRequest
 } from "../generated/coupon_stream"
 import { Db } from 'mongodb';
 import { DatabaseService } from 'src/config/database.config';
@@ -32,6 +34,7 @@ import { streamZones } from './streams/streamZones';
 import { streamBusinessBranches } from './streams/streamBusinessBranches';
 import { streamUserNotifications } from './streams/streamUserNotifications';
 import { streamUserCarts } from './streams/streamUserCarts';
+import { streamEnvironment } from './streams/streamEnvironment';
 // import { streamUserCarts } from './streams/streamUserCarts';
 
 
@@ -128,6 +131,10 @@ export class CouponService {
     return streamUserNotifications(this.db, data, this.logger);
   }
 
+  environmentStreamService(): Observable<EnvironmentResponse> {
+    this.logger.log('environmentStreamService called');
+    return streamEnvironment(this.db, this.logger);
+  }
   
 
 }

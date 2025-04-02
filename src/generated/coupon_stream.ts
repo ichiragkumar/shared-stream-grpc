@@ -268,6 +268,23 @@ export interface UserNotificationStreamResponse {
   streamType: number;
 }
 
+export interface EnvironmentResponse {
+  id: string;
+  allowInvites: string;
+  allowInviteAll: string;
+  stage: string;
+  deleteUnsentReports: string;
+  useCrashlytics: string;
+  auditLogsCredentials: string;
+  requiredMinimumAndroidVersion: string;
+  requiredMiliumOSVersion: string;
+  deleteAndroidUnsentReports: string;
+  deleteiOSUnsentReports: string;
+  useAndroidCrashlytics: string;
+  useiOSCrashlytics: string;
+  streamType: number;
+}
+
 export const COUPON_PACKAGE_NAME = "coupon";
 
 export interface CouponStreamServiceClient {
@@ -294,6 +311,8 @@ export interface CouponStreamServiceClient {
   streamUserCarts(request: User): Observable<UserCartStreamResponse>;
 
   streamUserNotifications(request: MainUser): Observable<UserNotificationStreamResponse>;
+
+  environmentStream(request: EmptyRequest): Observable<EnvironmentResponse>;
 }
 
 export interface CouponStreamServiceController {
@@ -320,6 +339,8 @@ export interface CouponStreamServiceController {
   streamUserCarts(request: User): Observable<UserCartStreamResponse>;
 
   streamUserNotifications(request: MainUser): Observable<UserNotificationStreamResponse>;
+
+  environmentStream(request: EmptyRequest): Observable<EnvironmentResponse>;
 }
 
 export function CouponStreamServiceControllerMethods() {
@@ -337,6 +358,7 @@ export function CouponStreamServiceControllerMethods() {
       "businessBranchStream",
       "streamUserCarts",
       "streamUserNotifications",
+      "environmentStream",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

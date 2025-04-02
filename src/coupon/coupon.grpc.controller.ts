@@ -21,6 +21,8 @@ import {
   UserCartStreamItem,
   UserNotificationStreamResponse,
   MainUser,
+  EmptyRequest,
+  EnvironmentResponse,
 } from "../generated/coupon_stream";
 import { LoggerService } from '../logger/logger.service';
 import { Metadata } from '@grpc/grpc-js';
@@ -588,5 +590,55 @@ StreamActiveDrawn(data: UserPrefrences, metadata: Metadata): Observable<ActiveDr
       });
     }
 
+
+
+    @GrpcMethod('CouponStreamService', 'EnvironmentStream')
+    environmentStream(request: EmptyRequest, metadata: Metadata): Observable<EnvironmentResponse> {
+      const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
+      const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
+      const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
+      const userId = (metadata.get('user-id')?.[0] as string);
+
+      const requestId = this.logger.initializeRequest(
+        'EnvironmentStream',
+        userAgent,
+        ipAddress,
+        dns,
+        userId
+      );  
+
+
+      return new Observable((subscriber) => {
+        this.couponService.environmentStreamService().subscribe({
+          next: (environmentResponse) => {
+            this.logger.logStreamEvent(requestId, 'ENVIRONMENT', {
+              id: environmentResponse.id,
+              allowInvites: environmentResponse.allowInvites,
+              allowInviteAll: environmentResponse.allowInviteAll,
+              stage: environmentResponse.stage,
+              deleteUnsentReports: environmentResponse.deleteUnsentReports,
+              useCrashlytics: environmentResponse.useCrashlytics,
+              auditLogsCredentials: environmentResponse.auditLogsCredentials,
+              requiredMinimumAndroidVersion: environmentResponse.requiredMinimumAndroidVersion,
+              requiredMiliumOSVersion: environmentResponse.requiredMiliumOSVersion,
+              deleteAndroidUnsentReports: environmentResponse.deleteAndroidUnsentReports,
+              deleteiOSUnsentReports: environmentResponse.deleteiOSUnsentReports,
+              useAndroidCrashlytics: environmentResponse.useAndroidCrashlytics,
+              useiOSCrashlytics: environmentResponse.useiOSCrashlytics,
+              streamType: environmentResponse.streamType
+            });
+            subscriber.next(environmentResponse);
+          },
+          error: (error) => {
+            this.logger.logError(requestId, error);
+            subscriber.error(error);
+          },
+          complete: () => {
+            this.logger.finalizeRequest(requestId);
+            subscriber.complete();
+          }
+        });
+      });
+    }
 
 }

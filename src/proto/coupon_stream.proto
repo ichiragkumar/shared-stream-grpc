@@ -31,6 +31,8 @@ service CouponStreamService {
 
   rpc StreamUserNotifications(MainUser) returns (stream UserNotificationStreamResponse);
 
+  rpc EnvironmentStream(EmptyRequest) returns (stream EnvironmentResponse);
+
 }
 
 
@@ -315,4 +317,21 @@ message UserNotificationStreamResponse  {
     optional  string screen = 7;
     optional  string userId = 8;
     int32     streamType = 9;
+}
+
+message EnvironmentResponse{
+  string id = 1;
+  string allowInvites = 2;
+  string allowInviteAll = 3;
+  string stage = 4;
+  string deleteUnsentReports = 5;
+  string useCrashlytics = 6;
+  string auditLogsCredentials = 7;
+  string requiredMinimumAndroidVersion = 8;
+  string requiredMiliumOSVersion = 9;
+  string deleteAndroidUnsentReports = 10;
+  string deleteiOSUnsentReports = 11;
+  string useAndroidCrashlytics = 12;
+  string useiOSCrashlytics = 13;
+  int32 streamType = 14;
 }

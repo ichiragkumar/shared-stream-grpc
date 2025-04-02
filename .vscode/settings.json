@@ -9,8 +9,11 @@
       "PATH": "./node_modules/.bin;${env:PATH}"
     },
     "cSpell.words": [
+      "deletei",
       "predraw",
-      "Spendings"
+      "Prefrences",
+      "Spendings",
+      "usei"
     ]
   }
   
