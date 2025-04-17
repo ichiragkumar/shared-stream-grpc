@@ -54,7 +54,6 @@ export const streamUserCarts = (
         } else {
           logger.warn('No user cart found', { context: 'streamUserCarts', userId });
           subscriber.next({ items: [], streamType: STREAM_TYPE.BASE });
-          subscriber.complete();
         }
       } catch (error) {
         streamMetrics.errors++;
@@ -144,10 +143,14 @@ export const streamUserCarts = (
             deletedItemIds,
           });
           
-          // For deleted items, emit the complete current array
+          // Only emit the deleted items
+          const deletedItems = previousItems.filter(item => 
+            deletedItemIds.includes(item.itemId?.toString())
+          );
+          
           subscriber.next({
-            items: currentItems.map((item: any) => mapUserCartResponse(item, STREAM_TYPE.DELETE)),
-            streamType: STREAM_TYPE.UPDATE,
+            items: deletedItems.map(item => mapUserCartResponse(item, STREAM_TYPE.DELETE)),
+            streamType: STREAM_TYPE.DELETE,
           });
           
           // Update previous state
@@ -260,9 +263,6 @@ export const streamUserCarts = (
     });
   });
 };
-
-
-
 
 const mapUserCartResponse = (
   item: any,
