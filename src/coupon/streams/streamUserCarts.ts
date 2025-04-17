@@ -146,7 +146,7 @@ export const streamUserCarts = (
           
           // For deleted items, emit the complete current array
           subscriber.next({
-            items: currentItems.map((item: any) => mapUserCartResponse(item, STREAM_TYPE.UPDATE)),
+            items: currentItems.map((item: any) => mapUserCartResponse(item, STREAM_TYPE.DELETE)),
             streamType: STREAM_TYPE.UPDATE,
           });
           
