@@ -48,7 +48,7 @@ export function streamUserNotifications(
 
                 const queryForUser = {
                     userId: new ObjectId(userId),
-                    //removed isRead and made it for both 
+                    // removed isRead and made it for both 
                     // even if it is true, and it comes in the stream, it will be shown to the user
                     // isRead: false,
                     

@@ -1,6 +1,7 @@
 import { LoggerService } from '@nestjs/common';
 import { Db, ObjectId } from 'mongodb';
 import { Observable } from 'rxjs';
+import { roundFloat } from 'src/config/constant';
 import { UserCartStreamItem, UserCartStreamResponse } from 'src/generated/coupon_stream';
 import { STREAM_TYPE } from 'src/types';
 
@@ -24,17 +25,20 @@ export const streamUserCarts = (
       userId,
     });
 
+    let previousItems: any[] = [];
+
     (async () => {
       try {
         const fetchStartTime = Date.now();
 
-        console.log(userId)
+        console.log(userId);
         const userCartDocument = await db
           .collection('carts')
           .findOne({ userId: new ObjectId(userId) });
 
         if (userCartDocument && userCartDocument.items?.length) {
           streamMetrics.initialDocumentsCount = userCartDocument.items.length;
+          previousItems = userCartDocument.items;
 
           logger.log('Initial document emission', {
             context: 'streamUserCarts',
@@ -46,7 +50,6 @@ export const streamUserCarts = (
             mapUserCartResponse(item, STREAM_TYPE.BASE)
           );
 
-          console.log('Initial items:', items);
           subscriber.next({ items, streamType: STREAM_TYPE.BASE });
         } else {
           logger.warn('No user cart found', { context: 'streamUserCarts', userId });
@@ -69,7 +72,6 @@ export const streamUserCarts = (
         subscriber.error(error);
       }
     })();
-
 
     const changeStream = db.collection('carts').watch(
       [
@@ -116,48 +118,113 @@ export const streamUserCarts = (
           return;
       }
 
+      const updatedFields = change.updateDescription?.updatedFields || {};
+      const currentItems = change.fullDocument.items || [];
+      
+      // Check if items array has been modified
+      if (updatedFields.items !== undefined || 
+          Object.keys(updatedFields).some(key => key.startsWith('items.')) ||
+          change.updateDescription?.removedFields?.some((field: string) => field.startsWith('items.'))) {
 
-      const modifiedItems = Object.keys(change.updateDescription?.updatedFields || {})
-        .filter((key) => key.startsWith('items.'))
-        .map((key) => {
-          const index = parseInt(key.split('.')[1], 10);
-          return change.fullDocument.items[index];
+        logger.log('Items array was modified', {
+          context: 'streamUserCarts',
+          previousLength: previousItems.length,
+          currentLength: currentItems.length,
         });
 
-
-      const deletedItems = (change.updateDescription?.removedFields || [])
-        .filter((key:any) => key.startsWith('items.'))
-        .map((key:any) => {
-          const index = parseInt(key.split('.')[1], 10);
-          const deletedItem = change.fullDocument.items[index];
-          return deletedItem
-            ? {
-                itemId: deletedItem.itemId?.toString() || '',
-                amount: 0,
-                purchasePrice: 0,
-                currency: '',
-                feePrice: undefined,
-                taxAmount: undefined,
-                streamType: STREAM_TYPE.DELETE,
+        // CASE 1: Check for deleted items
+        const previousItemIds = new Set(previousItems.map(item => item.itemId?.toString()));
+        const currentItemIds = new Set(currentItems.map((item: any) => item.itemId?.toString()));
+        
+        const deletedItemIds = Array.from(previousItemIds).filter(id => !currentItemIds.has(id));
+        
+        if (deletedItemIds.length > 0) {
+          logger.log('Items were deleted', {
+            context: 'streamUserCarts',
+            deletedItemIds,
+          });
+          
+          // For deleted items, emit the complete current array
+          subscriber.next({
+            items: currentItems.map((item: any) => mapUserCartResponse(item, STREAM_TYPE.UPDATE)),
+            streamType: STREAM_TYPE.UPDATE,
+          });
+          
+          // Update previous state
+          previousItems = currentItems;
+          return;
+        }
+        
+        // CASE 2: Check for added items
+        const newItems = currentItems.filter((item: any) => 
+          !previousItems.some(prevItem => prevItem.itemId?.toString() === item.itemId?.toString())
+        );
+        
+        if (newItems.length > 0) {
+          logger.log('New items were added', {
+            context: 'streamUserCarts',
+            newItemIds: newItems.map((item: any) => item.itemId?.toString()),
+          });
+          
+          // Emit only the new items
+          subscriber.next({
+            items: newItems.map((item: any) => mapUserCartResponse(item, STREAM_TYPE.INSERT)),
+            streamType: STREAM_TYPE.INSERT,
+          });
+          
+          // Update previous state
+          previousItems = currentItems;
+          return;
+        }
+        
+        // CASE 3: Check for updated items
+        let modifiedItems: any[] = [];
+        
+        if (updatedFields.items !== undefined) {
+          // If the entire array was replaced but no items were added or deleted,
+          // find which items were modified by comparing with previous state
+          modifiedItems = currentItems.filter((item: any) => {
+            const prevItem = previousItems.find(p => p.itemId?.toString() === item.itemId?.toString());
+            return prevItem && JSON.stringify(item) !== JSON.stringify(prevItem);
+          });
+        } else {
+          // For dot-notation updates (e.g., items.0.amount), extract the modified items
+          const modifiedIndices = new Set<number>();
+          
+          Object.keys(updatedFields)
+            .filter(key => key.startsWith('items.'))
+            .forEach(key => {
+              const parts = key.split('.');
+              if (parts.length >= 2) {
+                const index = parseInt(parts[1], 10);
+                if (!isNaN(index)) {
+                  modifiedIndices.add(index);
+                }
               }
-            : null;
-        })
-        .filter((item) => item !== null) as UserCartStreamItem[];
-
-
-      const itemsToEmit: UserCartStreamItem[] = [
-        ...modifiedItems.map((item) => mapUserCartResponse(item, streamType)),
-        ...deletedItems,
-      ];
-
-      if (itemsToEmit.length) {
-        subscriber.next({
-          items: itemsToEmit,
-          streamType,
-        });
+            });
+          
+          modifiedItems = Array.from(modifiedIndices)
+            .filter(index => index < currentItems.length)
+            .map(index => currentItems[index]);
+        }
+        
+        if (modifiedItems.length > 0) {
+          logger.log('Items were updated', {
+            context: 'streamUserCarts',
+            modifiedItemIds: modifiedItems.map((item: any) => item.itemId?.toString()),
+          });
+          
+          // Emit only the modified items
+          subscriber.next({
+            items: modifiedItems.map((item) => mapUserCartResponse(item, STREAM_TYPE.UPDATE)),
+            streamType: STREAM_TYPE.UPDATE,
+          });
+        }
+        
+        // Update previous state
+        previousItems = currentItems;
       }
     });
-
 
     changeStream.on('error', (error) => {
       streamMetrics.errors++;
@@ -175,7 +242,6 @@ export const streamUserCarts = (
 
       subscriber.error(error);
     });
-
 
     subscriber.add(() => {
       logger.log('Stream cleanup', {
@@ -195,17 +261,25 @@ export const streamUserCarts = (
   });
 };
 
+
+
+
 const mapUserCartResponse = (
   item: any,
   streamType: number,
 ): UserCartStreamItem => {
+  const taxAmount = item.taxAmount !== undefined ? roundFloat(item.taxAmount) : undefined;
+  const feePrice = item.feePrice !== undefined ? roundFloat(item.feePrice) : undefined;
+  console.log('Rounded feePrice:', feePrice);
+  console.log('Rounded taxAmount:', taxAmount);
+
   return {
-    itemId: item.itemId?.toString() || '',
-    amount: item.amount || 0,
-    purchasePrice: item.purchasePrice || 0,
-    currency: item.currency || '',
-    feePrice: item.feePrice || undefined,
-    taxAmount: item.taxAmount || undefined,
+    itemId: item.itemId?.toString() ?? null,
+    amount: item.amount ?? 0,
+    purchasePrice: item.purchasePrice ?? 0,
+    currency: item.currency ?? null,
+    feePrice: item.feePrice !== undefined ? roundFloat(item.feePrice) : undefined,
+    taxAmount: item.taxAmount !== undefined ? roundFloat(item.taxAmount) : undefined,
     streamType,
   };
 };

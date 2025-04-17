@@ -67,3 +67,8 @@ export enum Brightness {
   DARK = 'dark',
   DEFAULT = 'light'
 }
+
+
+export function roundFloat(value: number, decimals = 2): number {
+  return Number(value.toFixed(decimals));
+}
