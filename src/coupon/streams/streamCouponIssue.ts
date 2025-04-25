@@ -232,11 +232,12 @@ function mapCouponIssue(doc: any, languageCode: string, brightness: string, stre
     additionalAmount: doc.additionalAmount,
     lastIncrId: doc.lastIncrId,
     nextCodeIncrId: doc.nextCodeIncrId,
-    RawPath: doc._rawPath,
+    RawPath:doc._rawPath,
     restrictions: doc.restrictions?.[languageCode] || doc.restrictions?.[Language.DEFAULT] || '',
     methodsOfRedemption: doc.methodsOfRedemption,
     amountUsed: doc.amountUsed,
     amountSold: doc.amountSold,
+    restrictedBranchIds : doc?.restrictedBranchIds,
     streamType: streamType,
   };
 }

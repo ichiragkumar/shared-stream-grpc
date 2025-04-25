@@ -53,6 +53,7 @@ export interface CouponIssue {
   amountSold: number;
   streamType: number;
   status: string;
+  restrictedBranchIds: string[];
 }
 
 export interface UserFilter {

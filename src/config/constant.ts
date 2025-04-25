@@ -44,7 +44,7 @@ export const BUSINESS_NOT_TRACKED_STATUS = ['closed', 'expired', 'over'];
 
 export const ACTIVE_DRAWN_STATUS = ['open', 'predraw', 'drawing', 'contest'];
 
-export const USER_COUPON_STATUS = ['active', 'suspended', 'ended'];
+export const USER_COUPON_STATUS = ['active', 'suspended', 'activated'];
 
 
 

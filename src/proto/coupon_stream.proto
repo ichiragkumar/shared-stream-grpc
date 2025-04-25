@@ -83,6 +83,7 @@ message CouponIssue {
   int32 amountSold = 36;
   int32 streamType = 37;
   string status = 38;
+  repeated string restrictedBranchIds = 39;
 }
 
 

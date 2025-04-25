@@ -27,17 +27,14 @@ export function streamZones(db: Db, userPrefrences: UserPrefrences,logger: Logge
       try {
         const fetchStartTime = Date.now();
 
-
-        const zoneDocuments = db.collection('businesses')
-          .find({});
-
+        const zoneDocuments = db.collection('zones').find({});
 
         let hasZones = false;
         for await (const document of zoneDocuments) {
           hasZones = true;
           streamMetrics.initialDocumentsCount++;
 
-          const zoneResponse = mapZoneResponse(document, languageCode,0);
+          const zoneResponse = mapZoneResponse(document, languageCode, 0);
 
           logger.log('Initial document emission', {
             context: 'streamZones',
@@ -118,7 +115,7 @@ export function streamZones(db: Db, userPrefrences: UserPrefrences,logger: Logge
         timeSinceStart: Date.now() - streamMetrics.startTime,
       });
 
-      subscriber.next(mapZoneResponse(change.fullDocument, languageCode,1));
+      subscriber.next(mapZoneResponse(change.fullDocument, languageCode, 1));
     });
 
     changeStream.on('error', error => {
@@ -154,7 +151,7 @@ export function streamZones(db: Db, userPrefrences: UserPrefrences,logger: Logge
   });
 }
 
-function mapZoneResponse(document: any, languageCode: string,streamType:number): ZoneStreamResponse {
+function mapZoneResponse(document: any, languageCode: string, streamType: number): ZoneStreamResponse {
   return {
     id: document._id?.toString() || '',
     country: document.country || '',
