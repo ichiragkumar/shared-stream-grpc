@@ -620,7 +620,7 @@ StreamActiveDrawn(data: UserPrefrences, metadata: Metadata): Observable<ActiveDr
               useCrashlytics: environmentResponse.useCrashlytics,
               auditLogsCredentials: environmentResponse.auditLogsCredentials,
               requiredMinimumAndroidVersion: environmentResponse.requiredMinimumAndroidVersion,
-              requiredMiliumOSVersion: environmentResponse.requiredMiliumOSVersion,
+              requiredMiliumOSVersion: environmentResponse.requiredMinimumiOSVersion,
               deleteAndroidUnsentReports: environmentResponse.deleteAndroidUnsentReports,
               deleteiOSUnsentReports: environmentResponse.deleteiOSUnsentReports,
               useAndroidCrashlytics: environmentResponse.useAndroidCrashlytics,

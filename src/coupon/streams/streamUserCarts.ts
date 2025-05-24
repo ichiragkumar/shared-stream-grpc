@@ -31,7 +31,7 @@ export const streamUserCarts = (
       try {
         const fetchStartTime = Date.now();
 
-        console.log(userId);
+
         const userCartDocument = await db
           .collection('carts')
           .findOne({ userId: new ObjectId(userId) });
@@ -217,14 +217,14 @@ export const streamUserCarts = (
             modifiedItemIds: modifiedItems.map((item: any) => item.itemId?.toString()),
           });
           
-          // Emit only the modified items
+          // Emitting only the modified items
           subscriber.next({
             items: modifiedItems.map((item) => mapUserCartResponse(item, STREAM_TYPE.UPDATE)),
             streamType: STREAM_TYPE.UPDATE,
           });
         }
         
-        // Update previous state
+        // Updating previous state
         previousItems = currentItems;
       }
     });
@@ -270,8 +270,6 @@ const mapUserCartResponse = (
 ): UserCartStreamItem => {
   const taxAmount = item.taxAmount !== undefined ? roundFloat(item.taxAmount) : undefined;
   const feePrice = item.feePrice !== undefined ? roundFloat(item.feePrice) : undefined;
-  console.log('Rounded feePrice:', feePrice);
-  console.log('Rounded taxAmount:', taxAmount);
 
   return {
     itemId: item.itemId?.toString() ?? null,

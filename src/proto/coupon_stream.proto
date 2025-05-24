@@ -329,7 +329,7 @@ message EnvironmentResponse{
   string useCrashlytics = 6;
   string auditLogsCredentials = 7;
   string requiredMinimumAndroidVersion = 8;
-  string requiredMiliumOSVersion = 9;
+  string requiredMinimumiOSVersion = 9;
   string deleteAndroidUnsentReports = 10;
   string deleteiOSUnsentReports = 11;
   string useAndroidCrashlytics = 12;

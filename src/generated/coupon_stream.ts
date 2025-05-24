@@ -278,7 +278,7 @@ export interface EnvironmentResponse {
   useCrashlytics: string;
   auditLogsCredentials: string;
   requiredMinimumAndroidVersion: string;
-  requiredMiliumOSVersion: string;
+  requiredMinimumiOSVersion: string;
   deleteAndroidUnsentReports: string;
   deleteiOSUnsentReports: string;
   useAndroidCrashlytics: string;

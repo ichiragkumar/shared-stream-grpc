@@ -69,7 +69,6 @@ export function streamMoreCouponRequestsService(
             parentId: '',
             streamType: STREAM_TYPE.BASE
           });
-          subscriber.complete();
           return;
         }
 
