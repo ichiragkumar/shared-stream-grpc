@@ -18,7 +18,7 @@ export function streamZones(db: Db, userPrefrences: UserPrefrences,logger: Logge
       errors: 0,
     };
 
-    logger.log('Stream initialization', {
+    logger.log('Stream Initialized', {
       context: 'streamZones',
       languageCode
     });
@@ -35,13 +35,6 @@ export function streamZones(db: Db, userPrefrences: UserPrefrences,logger: Logge
           streamMetrics.initialDocumentsCount++;
 
           const zoneResponse = mapZoneResponse(document, languageCode, 0);
-
-          logger.log('Initial document emission', {
-            context: 'streamZones',
-            documentId: document._id,
-            elapsedTime: Date.now() - fetchStartTime,
-          });
-
           subscriber.next(zoneResponse);
         }
 

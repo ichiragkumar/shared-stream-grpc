@@ -17,7 +17,7 @@ export function streamWalletBalance(db: Db, data: User,logger:LoggerService): Ob
       errors: 0,
     };
 
-    logger.log('Stream initialization', {
+    logger.log('Stream Initialized', {
       context: 'streamWalletBalance',
       userId,
     });
@@ -46,17 +46,6 @@ export function streamWalletBalance(db: Db, data: User,logger:LoggerService): Ob
 
           const availableBalances: Balance = userWalletDocument.availableBalances || { USD: 0, EGP: 0 };
           const blockedBalances: Balance = userWalletDocument.blockedBalances || { USD: 0, EGP: 0 };
-
-          streamMetrics.initialDocumentsCount++;
-
-          logger.log('Initial wallet balance emission', {
-            context: 'streamWalletBalance',
-            userId,
-            availableBalances,
-            blockedBalances,
-            elapsedTime: Date.now() - fetchStartTime,
-          });
-
 
           subscriber.next({
             availableBalances,

@@ -20,7 +20,7 @@ export const streamUserCarts = (
       errors: 0,
     };
 
-    logger.log('Stream initialization', {
+    logger.log('Stream Initialized', {
       context: 'streamUserCarts',
       userId,
     });
@@ -37,14 +37,8 @@ export const streamUserCarts = (
           .findOne({ userId: new ObjectId(userId) });
 
         if (userCartDocument && userCartDocument.items?.length) {
-          streamMetrics.initialDocumentsCount = userCartDocument.items.length;
-          previousItems = userCartDocument.items;
 
-          logger.log('Initial document emission', {
-            context: 'streamUserCarts',
-            documentId: userCartDocument._id.toString(),
-            elapsedTime: Date.now() - fetchStartTime,
-          });
+          previousItems = userCartDocument.items;
 
           const items: UserCartStreamItem[] = userCartDocument.items.map((item: any) =>
             mapUserCartResponse(item, STREAM_TYPE.BASE)

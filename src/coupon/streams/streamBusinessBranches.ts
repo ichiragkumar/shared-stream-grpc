@@ -21,7 +21,7 @@ export function streamBusinessBranches(
       errors: 0,
     };
 
-    logger.log('Stream initialization', {
+    logger.log('Stream Initialized', {
       context: 'streamBusinessBranches',
       languageCode
     });
@@ -47,16 +47,7 @@ export function streamBusinessBranches(
         let hasBranches = false;
         for await (const document of cursor) {
           hasBranches = true;
-          streamMetrics.initialDocumentsCount++;
-
           const branchResponse = mapBusinessBranchResponse(document, languageCode,0);
-
-          logger.log('Initial document emission', {
-            context: 'streamBusinessBranches',
-            documentId: document._id,
-            elapsedTime: Date.now() - fetchStartTime,
-          });
-
           subscriber.next(branchResponse);
         }
 

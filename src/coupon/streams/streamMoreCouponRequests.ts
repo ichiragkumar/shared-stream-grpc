@@ -18,7 +18,7 @@ export function streamMoreCouponRequestsService(
       errors: 0
     };
 
-    logger.log('Stream initialization', {
+    logger.log('Stream Initialized', {
       context: 'streamMoreCouponRequestsService',
       userId
     });
@@ -30,15 +30,6 @@ export function streamMoreCouponRequestsService(
         const userCouponDocuments = db.collection('moreCouponsRequests').find({ userId : new ObjectId(userId) });
         for await (const document of userCouponDocuments) {
           userCouponDocument = true;
-          streamMetrics.initialDocumentsCount++;
-
-          logger.log('Initial document emission', {
-            context: 'streamMoreCouponRequestsService',
-            documentId: document._id,
-            elapsedTime: Date.now() - fetchStartTime
-          });
-
-
           subscriber.next({
             id: document._id.toString(),
             userId: document.userId,

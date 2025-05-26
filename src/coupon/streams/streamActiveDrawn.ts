@@ -17,7 +17,7 @@ export function streamActiveDrawn(db: Db, userPrefrences: UserPrefrences, logger
       errors: 0,
     };
 
-    logger.log('Stream initialization', {
+    logger.log('Stream Initialized', {
       context: 'streamActiveDrawn',
       userPreferences: userPrefrences,
     });
@@ -28,14 +28,6 @@ export function streamActiveDrawn(db: Db, userPrefrences: UserPrefrences, logger
 
         const initialDocuments = db.collection('draws').find({ status: { $in: ACTIVE_DRAWN_STATUS } });
         for await (const document of initialDocuments) {
-          streamMetrics.initialDocumentsCount++;
-          logger.log('Initial document emission', {
-            context: 'streamActiveDrawn',
-            documentId: document._id,
-            businessId: document.businessId,
-            contractId: document.contractId,
-            elapsedTime: Date.now() - fetchStartTime,
-          });
           subscriber.next(mapActiveDrawn(document, languageCode, brightness,0));
         }
 

@@ -28,7 +28,7 @@ export function streamCouponIssues(
     const languageCode = userPrefrences?.languageCode || DEFAUlT_SETTINGS.LANGUAGE_CODE;
     const brightness = userPrefrences?.brightness || DEFAUlT_SETTINGS.BRIGHTNESS;
 
-    logger.log('Stream initialization', {
+    logger.log('Stream Initialized', {
       context: 'streamCouponIssues',
       userPreferences: {
         languageCode,
@@ -46,15 +46,6 @@ export function streamCouponIssues(
         const issueCouponDocuments = db.collection('couponIssues').find({ status: { $in: TRACKED_STATUS } });
 
         for await (const document of issueCouponDocuments) {
-          streamMetrics.initialDocumentsCount++;
-          logger.log('Initial document emission', {
-            context: 'streamCouponIssues',
-            documentId: document._id,
-            status: document.status,
-            businessId: document.businessId,
-            documentNumber: streamMetrics.initialDocumentsCount,
-            elapsedTime: Date.now() - fetchStartTime
-          });
           subscriber.next(mapCouponIssue(document, languageCode, brightness, STREAM_TYPE.BASE));
         }
 

@@ -18,7 +18,7 @@ export function streamActiveBusinessesWithContractTypes(
 
 
     const requestId = logger.initializeRequest('StreamActiveBusinessesStream', 'Unknown', 'Unknown', 'Unknown', 'Unknown');
-    logger.log('Stream initialization', {
+    logger.log('Stream initialized', {
       context: 'streamActiveBusinessesWithContractTypes',
       userPreferences: {
         languageCode,
@@ -34,24 +34,15 @@ export function streamActiveBusinessesWithContractTypes(
         const fetchStartTime = Date.now();
         const initialDocuments = await db.collection('businesses').find({ contractTypes: { $in: VALID_CONTRACT_TYPES } }).toArray();
         for (const document of initialDocuments) {
-          logger.log('Initial document emission', {
-            context: 'streamActiveBusinessesWithContractTypes',
-            documentId: document._id,
-            businessId: document._id.toString(),
-            documentNumber: initialDocuments.indexOf(document) + 1,
-            elapsedTime: Date.now() - fetchStartTime,
-            requestId
-          });
           subscriber.next(mapBusiness(document, languageCode, brightness, STREAM_TYPE.BASE));
         }
+
         logger.log('Initial fetch completed', {
           context: 'streamActiveBusinessesWithContractTypes',
           requestId,
           documentsProcessed: initialDocuments.length,
           fetchDuration: Date.now() - fetchStartTime
         });
-
-
 
         const changeStream = db.collection('businesses').watch([], { fullDocument: 'updateLookup' });
         logger.log('Change stream established', {

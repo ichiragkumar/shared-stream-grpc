@@ -14,7 +14,7 @@ export function streamUserTickets(db: Db, data: User, logger: LoggerService): Ob
       errors: 0,
     };
 
-    logger.log('Stream initialization', {
+    logger.log('Stream Initialized', {
       context: 'streamUserTickets',
       userId,
     });
@@ -30,14 +30,6 @@ export function streamUserTickets(db: Db, data: User, logger: LoggerService): Ob
         let hasTickets = false;
         for await (const document of ticketDocuments) {
           hasTickets = true;
-          streamMetrics.initialDocumentsCount++;
-
-          logger.log('Initial document emission', {
-            context: 'streamUserTickets',
-            documentId: document._id,
-            elapsedTime: Date.now() - fetchStartTime,
-          });
-
           subscriber.next(mapTicketResponse(document,0));
         }
 

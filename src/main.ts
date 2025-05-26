@@ -26,7 +26,16 @@ async function bootstrap() {
       package: 'coupon',
       protoPath: join(__dirname, 'proto/coupon_stream.proto'),
       url: `${process.env.GRPC_HOST}:${process.env.PORT}`, // Use PORT for gRPC
+      channelOptions: {
+      'grpc.keepalive_time_ms': 30000, // 30s ping interval
+      'grpc.keepalive_timeout_ms': 10000, // 10s timeout after no ACK
+      'grpc.keepalive_permit_without_calls': 1, // allow pings when no RPC
+      'grpc.http2.max_pings_without_data': 0, // unlimited pings
+      'grpc.http2.min_time_between_pings_ms': 10000,
+      'grpc.http2.min_ping_interval_without_data_ms': 5000,
     },
+    },
+    
   };
 
   const grpcConfigWithReflection = addReflectionToGrpcConfig(grpcConfig);

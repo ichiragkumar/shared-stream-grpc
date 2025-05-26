@@ -23,7 +23,7 @@ export function streamActiveCouponsStream(
       errors: 0,
     };
 
-    logger.log('Stream initialization', {
+    logger.log('Stream Initialized', {
       context: 'streamActiveCouponsStream',
       userId,
     });
@@ -96,16 +96,6 @@ export function streamActiveCouponsStream(
             });
             return;
           }
-
-          streamMetrics.initialDocumentsCount++;
-          logger.log('Initial document emission', {
-            context: 'streamActiveCouponsStream',
-            documentId: doc._id,
-            businessId: doc.businessId,
-            couponIssueId: doc.couponIssueId,
-            documentNumber: streamMetrics.initialDocumentsCount,
-            elapsedTime: Date.now() - fetchStartTime,
-          });
           subscriber.next(
             mapToCouponIssue(
               doc,

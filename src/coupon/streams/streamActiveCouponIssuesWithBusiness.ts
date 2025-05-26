@@ -24,7 +24,7 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, userPrefrences: Use
       errors: 0
     };
 
-    logger.log('Stream initialization', {
+    logger.log('Stream initialized', {
       context: 'streamActiveCouponIssuesWithBusiness',
       languageCode,
       brightness
@@ -52,12 +52,6 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, userPrefrences: Use
 
         const initialResults = await db.collection('couponIssues').aggregate(pipeline).toArray();
         for (const document of initialResults) {
-          streamMetrics.initialDocumentsCount++;
-          logger.log('Initial document emission', {
-            context: 'streamMoreCouponRequestsService',
-            documentId: document._id,
-            elapsedTime: Date.now() - fetchStartTime
-          });
           subscriber.next(mapToCouponIssue(document, languageCode, brightness, STREAM_TYPE.BASE));
         }
         
