@@ -1,6 +1,4 @@
 import { Injectable, LoggerService as NestLoggerService } from '@nestjs/common';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as winston from 'winston';
 import { LoggingWinston } from '@google-cloud/logging-winston';
 
@@ -120,14 +118,6 @@ export class LoggerService implements NestLoggerService {
 
     metrics.eventsEmitted = (metrics.eventsEmitted || 0) + 1;
 
-    this.logger.info('Stream Event', {
-      requestId,
-      eventType,
-      eventNumber: metrics.eventsEmitted,
-      elapsedTime: Date.now() - metrics.startTime,
-      ...details,
-      type: 'STREAM_EVENT',
-    });
   }
 
   logError(requestId: string, error: any): void {

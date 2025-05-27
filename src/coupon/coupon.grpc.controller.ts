@@ -27,6 +27,7 @@ import {
 import { LoggerService } from '../logger/logger.service';
 import { Metadata } from '@grpc/grpc-js';
 import { GrpcMethod } from '@nestjs/microservices';
+import { GrpcStreamLoggerHelper } from 'src/logger/grpc-stream-logger.helper';
 
 @Controller()
 export class CouponGrpcController {
@@ -40,39 +41,18 @@ export class CouponGrpcController {
     data: UserPrefrences,
     metadata: Metadata,
   ): Observable<CouponIssue> {
-    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
-    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
-    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
-    const userId = metadata.get('user-id')?.[0] as string;
-
-    const requestId = this.logger.initializeRequest(
+    const stream$ = this.couponService.streamCouponIssuesService(data);
+    return GrpcStreamLoggerHelper.createStreamHandler(
       'StreamCouponIssues',
-      userAgent,
-      ipAddress,
-      dns,
-      userId,
+      metadata,
+      this.logger,
+      stream$,
+      (couponIssue) => ({
+        issueId: couponIssue.id,
+        businessId: couponIssue.businessId,
+        status: couponIssue.status,
+      }),
     );
-
-    return new Observable((subscriber) => {
-      this.couponService.streamCouponIssuesService(data).subscribe({
-        next: (couponIssue) => {
-          this.logger.logStreamEvent(requestId, 'COUPON_ISSUE', {
-            issueId: couponIssue.id,
-            businessId: couponIssue.businessId,
-            status: couponIssue.status,
-          });
-          subscriber.next(couponIssue);
-        },
-        error: (error) => {
-          this.logger.logError(requestId, error);
-          subscriber.error(error);
-        },
-        complete: () => {
-          this.logger.finalizeRequest(requestId);
-          subscriber.complete();
-        },
-      });
-    });
   }
 
   @GrpcMethod('CouponStreamService', 'ActiveCouponIssuesWithBusinessesStream')
@@ -80,41 +60,25 @@ export class CouponGrpcController {
     data: UserPrefrences,
     metadata: Metadata,
   ): Observable<CouponIssueWithBusiness> {
-    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
-    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
-    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
-    const userId = metadata.get('user-id')?.[0] as string;
+    const stream$ =
+      this.couponService.streamActiveCouponIssuesWithBusinessService(data);
 
-    const requestId = this.logger.initializeRequest(
+    return GrpcStreamLoggerHelper.createStreamHandler(
       'ActiveCouponIssuesWithBusinessesStream',
-      userAgent,
-      ipAddress,
-      dns,
-      userId,
+      metadata,
+      this.logger,
+      stream$,
+      (couponIssue) => ({
+        issueId: couponIssue.couponIssueId,
+        businessId: couponIssue.businessId,
+        status: couponIssue.status,
+        couponName: couponIssue.couponName,
+        businessName: couponIssue.businessName,
+        amountLeft: couponIssue.amountLeft,
+        currency: couponIssue.currency,
+        type: couponIssue.type,
+      }),
     );
-
-    return new Observable((subscriber) => {
-      this.couponService
-        .streamActiveCouponIssuesWithBusinessService(data)
-        .subscribe({
-          next: (couponIssue) => {
-            this.logger.logStreamEvent(requestId, 'ACTIVE_COUPON_ISSUE', {
-              issueId: couponIssue.couponIssueId,
-              businessId: couponIssue.businessId,
-              status: couponIssue.status,
-            });
-            subscriber.next(couponIssue);
-          },
-          error: (error) => {
-            this.logger.logError(requestId, error);
-            subscriber.error(error);
-          },
-          complete: () => {
-            this.logger.finalizeRequest(requestId);
-            subscriber.complete();
-          },
-        });
-    });
   }
 
   @GrpcMethod('CouponStreamService', 'StreamActiveBusinessesStream')
@@ -122,80 +86,40 @@ export class CouponGrpcController {
     data: UserPrefrences,
     metadata: Metadata,
   ): Observable<ActiveBusinessesStreamResponse> {
-    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
-    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
-    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
-    const userId = metadata.get('user-id')?.[0] as string;
+    const stream$ =
+      this.couponService.streamActiveBusinessesWithContractTypesService(data);
 
-    const requestId = this.logger.initializeRequest(
+    return GrpcStreamLoggerHelper.createStreamHandler(
       'StreamActiveBusinessesStream',
-      userAgent,
-      ipAddress,
-      dns,
-      userId,
+      metadata,
+      this.logger,
+      stream$,
+      (business) => ({
+        businessId: business.businessId,
+        contractType: business.contractType,
+        title: business.title,
+        suspended: business.suspended,
+      }),
     );
-
-    return new Observable((subscriber) => {
-      this.couponService
-        .streamActiveBusinessesWithContractTypesService(data)
-        .subscribe({
-          next: (businessResponse) => {
-            this.logger.logStreamEvent(requestId, 'ACTIVE_BUSINESS', {
-              businessId: businessResponse.id,
-              contractType: businessResponse.contractType,
-              title: businessResponse.title,
-            });
-            subscriber.next(businessResponse);
-          },
-          error: (error) => {
-            this.logger.logError(requestId, error);
-            subscriber.error(error);
-          },
-          complete: () => {
-            this.logger.finalizeRequest(requestId);
-            subscriber.complete();
-          },
-        });
-    });
   }
 
   @GrpcMethod('CouponStreamService', 'StreamActiveCoupons')
   streamActiveCouponsStream(
-    data: User,
+    data: { userId: string },
     metadata: Metadata,
   ): Observable<ActiveCouponStreamResponse> {
-    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
-    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
-    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
-    const userId = metadata.get('user-id')?.[0] as string;
+    const stream$ = this.couponService.streamActiveCouponsStreamService(data);
 
-    const requestId = this.logger.initializeRequest(
+    return GrpcStreamLoggerHelper.createStreamHandler(
       'StreamActiveCoupons',
-      userAgent,
-      ipAddress,
-      dns,
-      userId,
+      metadata,
+      this.logger,
+      stream$,
+      (couponResponse) => ({
+        businessId: couponResponse.businessId,
+        code: couponResponse.code,
+      }),
     );
-
-    return new Observable((subscriber) => {
-      this.couponService.streamActiveCouponsStreamService(data).subscribe({
-        next: (couponResponse) => {
-          this.logger.logStreamEvent(requestId, 'ACTIVE_COUPON', {
-            businessId: couponResponse.businessId,
-            code: couponResponse.code,
-          });
-          subscriber.next(couponResponse);
-        },
-        error: (error) => {
-          this.logger.logError(requestId, error);
-          subscriber.error(error);
-        },
-        complete: () => {
-          this.logger.finalizeRequest(requestId);
-          subscriber.complete();
-        },
-      });
-    });
   }
 
   @GrpcMethod('CouponStreamService', 'StreamMoreCouponRequests')
@@ -203,40 +127,20 @@ export class CouponGrpcController {
     data: User,
     metadata: Metadata,
   ): Observable<MoreCouponRequest> {
-    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
-    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
-    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
-    const userId = data.userId || (metadata.get('user-id')?.[0] as string);
+    const stream$ = this.couponService.streamMoreCouponRequestsService(data);
 
-    const requestId = this.logger.initializeRequest(
+    return GrpcStreamLoggerHelper.createStreamHandler(
       'StreamMoreCouponRequests',
-      userAgent,
-      ipAddress,
-      dns,
-      userId,
+      metadata,
+      this.logger,
+      stream$,
+      (moreCouponRequest) => ({
+        requestId: moreCouponRequest.id,
+        userId: moreCouponRequest.userId,
+        couponIssueId: moreCouponRequest.couponIssueId,
+        createdAt: moreCouponRequest.createdAt,
+      }),
     );
-
-    return new Observable((subscriber) => {
-      this.couponService.streamMoreCouponRequestsService(data).subscribe({
-        next: (moreCouponRequest) => {
-          this.logger.logStreamEvent(requestId, 'MORE_COUPON_REQUEST', {
-            requestId: moreCouponRequest.id,
-            userId: moreCouponRequest.userId,
-            couponIssueId: moreCouponRequest.couponIssueId,
-            createdAt: moreCouponRequest.createdAt,
-          });
-          subscriber.next(moreCouponRequest);
-        },
-        error: (error) => {
-          this.logger.logError(requestId, error);
-          subscriber.error(error);
-        },
-        complete: () => {
-          this.logger.finalizeRequest(requestId);
-          subscriber.complete();
-        },
-      });
-    });
   }
 
   @GrpcMethod('CouponStreamService', 'WalletStream')
@@ -244,38 +148,21 @@ export class CouponGrpcController {
     data: User,
     metadata: Metadata,
   ): Observable<WalletBalanceResponse> {
-    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
-    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
-    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
-    const userId = metadata.get('user-id')?.[0] as string;
+    const stream$ = this.couponService.streamWalletService(data);
 
-    const requestId = this.logger.initializeRequest(
+    return GrpcStreamLoggerHelper.createStreamHandler(
       'WalletStream',
-      userAgent,
-      ipAddress,
-      dns,
-      userId,
+      metadata,
+      this.logger,
+      stream$,
+      (walletBalance) => ({
+        availableUSD: walletBalance.availableBalances?.USD,
+        availableEGP: walletBalance.availableBalances?.EGP,
+        blockedUSD: walletBalance.blockedBalances?.USD,
+        blockedEGP: walletBalance.blockedBalances?.EGP,
+        streamType: walletBalance.streamType,
+      }),
     );
-
-    return new Observable((subscriber) => {
-      this.couponService.streamWalletService(data).subscribe({
-        next: (walletBalance) => {
-          this.logger.logStreamEvent(requestId, 'WALLET_BALANCE_UPDATE', {
-            userId: data.userId,
-            balance: walletBalance,
-          });
-          subscriber.next(walletBalance);
-        },
-        error: (error) => {
-          this.logger.logError(requestId, error);
-          subscriber.error(error);
-        },
-        complete: () => {
-          this.logger.finalizeRequest(requestId);
-          subscriber.complete();
-        },
-      });
-    });
   }
 
   @GrpcMethod('CouponStreamService', 'StreamActiveDrawn')
@@ -283,39 +170,19 @@ export class CouponGrpcController {
     data: UserPrefrences,
     metadata: Metadata,
   ): Observable<ActiveDrawnResponse> {
-    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
-    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
-    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
-    const userId = metadata.get('user-id')?.[0] as string;
+    const stream$ = this.couponService.streamActiveDrawnService(data);
 
-    const requestId = this.logger.initializeRequest(
+    return GrpcStreamLoggerHelper.createStreamHandler(
       'StreamActiveDrawn',
-      userAgent,
-      ipAddress,
-      dns,
-      userId,
+      metadata,
+      this.logger,
+      stream$,
+      (activeDrawn) => ({
+        drawnId: activeDrawn.id,
+        businessId: activeDrawn.businessId,
+        status: activeDrawn.status,
+      }),
     );
-
-    return new Observable((subscriber) => {
-      this.couponService.streamActiveDrawnService(data).subscribe({
-        next: (activeDrawn) => {
-          this.logger.logStreamEvent(requestId, 'ACTIVE_DRAWN_UPDATE', {
-            drawnId: activeDrawn.id,
-            businessId: activeDrawn.businessId,
-            status: activeDrawn.status,
-          });
-          subscriber.next(activeDrawn);
-        },
-        error: (error) => {
-          this.logger.logError(requestId, error);
-          subscriber.error(error);
-        },
-        complete: () => {
-          this.logger.finalizeRequest(requestId);
-          subscriber.complete();
-        },
-      });
-    });
   }
 
   @GrpcMethod('CouponStreamService', 'TicketsStream')
@@ -323,45 +190,25 @@ export class CouponGrpcController {
     data: User,
     metadata: Metadata,
   ): Observable<TicketStreamResponse> {
-    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
-    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
-    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
-    const userId = metadata.get('user-id')?.[0] as string;
+    const stream$ = this.couponService.TicketsStreamService(data);
 
-    const requestId = this.logger.initializeRequest(
+    return GrpcStreamLoggerHelper.createStreamHandler(
       'TicketsStream',
-      userAgent,
-      ipAddress,
-      dns,
-      userId,
+      metadata,
+      this.logger,
+      stream$,
+      (ticket) => ({
+        id: ticket.id,
+        userId: ticket.userId,
+        drawId: ticket.drawId,
+        drawType: ticket.drawType,
+        isDrawClosed: ticket.isDrawClosed,
+        drawNumbers: ticket.drawNumbers,
+        createdAt: ticket.createdAt,
+        status: ticket.status,
+        streamType: ticket.streamType,
+      }),
     );
-
-    return new Observable((subscriber) => {
-      this.couponService.TicketsStreamService(data).subscribe({
-        next: (ticketStreamResponse) => {
-          this.logger.logStreamEvent(requestId, 'TICKET_STREAM', {
-            id: ticketStreamResponse.id,
-            userId: ticketStreamResponse.userId,
-            drawId: ticketStreamResponse.drawId,
-            drawType: ticketStreamResponse.drawType,
-            isDrawClosed: ticketStreamResponse.isDrawClosed,
-            drawNumbers: ticketStreamResponse.drawNumbers,
-            createdAt: ticketStreamResponse.createdAt,
-            status: ticketStreamResponse.status,
-            streamType: ticketStreamResponse.streamType,
-          });
-          subscriber.next(ticketStreamResponse);
-        },
-        error: (error) => {
-          this.logger.logError(requestId, error);
-          subscriber.error(error);
-        },
-        complete: () => {
-          this.logger.finalizeRequest(requestId);
-          subscriber.complete();
-        },
-      });
-    });
   }
 
   @GrpcMethod('CouponStreamService', 'ZonesStream')
@@ -369,43 +216,23 @@ export class CouponGrpcController {
     data: UserPrefrences,
     metadata: Metadata,
   ): Observable<ZoneStreamResponse> {
-    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
-    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
-    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
-    const userId = metadata.get('user-id')?.[0] as string;
+    const stream$ = this.couponService.ZonesStreamService(data);
 
-    const requestId = this.logger.initializeRequest(
+    return GrpcStreamLoggerHelper.createStreamHandler(
       'ZonesStream',
-      userAgent,
-      ipAddress,
-      dns,
-      userId,
+      metadata,
+      this.logger,
+      stream$,
+      (zone) => ({
+        id: zone.id,
+        country: zone.country,
+        createdAt: zone.createdAt,
+        isDefault: zone.isDefault,
+        name: zone.name,
+        location: zone.location,
+        streamType: zone.streamType,
+      }),
     );
-
-    return new Observable((subscriber) => {
-      this.couponService.ZonesStreamService(data).subscribe({
-        next: (zoneStreamResponse) => {
-          this.logger.logStreamEvent(requestId, 'ZONE_STREAM', {
-            id: zoneStreamResponse.id,
-            country: zoneStreamResponse.country,
-            createdAt: zoneStreamResponse.createdAt,
-            isDefault: zoneStreamResponse.isDefault,
-            name: zoneStreamResponse.name,
-            location: zoneStreamResponse.location,
-            streamType: zoneStreamResponse.streamType,
-          });
-          subscriber.next(zoneStreamResponse);
-        },
-        error: (error) => {
-          this.logger.logError(requestId, error);
-          subscriber.error(error);
-        },
-        complete: () => {
-          this.logger.finalizeRequest(requestId);
-          subscriber.complete();
-        },
-      });
-    });
   }
 
   @GrpcMethod('CouponStreamService', 'BusinessBranchStream')
@@ -413,46 +240,26 @@ export class CouponGrpcController {
     data: UserPrefrences,
     metadata: Metadata,
   ): Observable<BusinessBranchStreamResponse> {
-    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
-    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
-    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
-    const userId = metadata.get('user-id')?.[0] as string;
+    const stream$ = this.couponService.BusinessBranchStreamService(data);
 
-    const requestId = this.logger.initializeRequest(
+    return GrpcStreamLoggerHelper.createStreamHandler(
       'BusinessBranchStream',
-      userAgent,
-      ipAddress,
-      dns,
-      userId,
+      metadata,
+      this.logger,
+      stream$,
+      (branch) => ({
+        id: branch.id,
+        businessSuspended: branch.businessSuspended,
+        shortAddress: branch.shortAddress,
+        businessId: branch.businessId,
+        zoneId: branch.zoneId,
+        location: branch.location,
+        openingHours: branch.openingHours,
+        createdAt: branch.createdAt,
+        contractTypes: branch.contractTypes,
+        streamType: branch.streamType,
+      }),
     );
-
-    return new Observable((subscriber) => {
-      this.couponService.BusinessBranchStreamService(data).subscribe({
-        next: (businessBranchResponse) => {
-          this.logger.logStreamEvent(requestId, 'BUSINESS_BRANCH', {
-            id: businessBranchResponse.id,
-            businessSuspended: businessBranchResponse.businessSuspended,
-            shortAddress: businessBranchResponse.shortAddress,
-            businessId: businessBranchResponse.businessId,
-            zoneId: businessBranchResponse.zoneId,
-            location: businessBranchResponse.location,
-            openingHours: businessBranchResponse.openingHours,
-            createdAt: businessBranchResponse.createdAt,
-            contractTypes: businessBranchResponse.contractTypes,
-            streamType: businessBranchResponse.streamType,
-          });
-          subscriber.next(businessBranchResponse);
-        },
-        error: (error) => {
-          this.logger.logError(requestId, error);
-          subscriber.error(error);
-        },
-        complete: () => {
-          this.logger.finalizeRequest(requestId);
-          subscriber.complete();
-        },
-      });
-    });
   }
 
   @GrpcMethod('CouponStreamService', 'StreamUserCarts')
@@ -460,64 +267,39 @@ export class CouponGrpcController {
     data: User,
     metadata: Metadata,
   ): Observable<UserCartStreamResponse> {
-    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
-    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
-    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
-    const userId = metadata.get('user-id')?.[0] as string;
+    const stream$ = this.couponService.UserCartStreamResponseService(data);
 
-    const requestId = this.logger.initializeRequest(
-      'UserCartStreamResponse',
-      userAgent,
-      ipAddress,
-      dns,
-      userId,
-    );
+    return GrpcStreamLoggerHelper.createStreamHandler(
+      'StreamUserCarts',
+      metadata,
+      this.logger,
+      stream$,
+      (response: UserCartStreamResponse) => {
+        if (response?.items?.length) {
+          const filteredItems = response.items.filter(
+            (item) => item.itemId && item.amount,
+          );
 
-    return new Observable((subscriber) => {
-      this.couponService.UserCartStreamResponseService(data).subscribe({
-        next: (response: UserCartStreamResponse) => {
-          if (response?.items?.length) {
-            const filteredItems = response.items.filter(
-              (item) => item.itemId && item.amount,
-            );
+          if (filteredItems.length) {
+            const streamType = filteredItems[0].streamType;
 
-            if (filteredItems.length) {
-              const streamType = filteredItems[0].streamType;
-
-              subscriber.next({
-                items: filteredItems,
-                streamType,
-              });
-
-              this.logger.logStreamEvent(
-                requestId,
-                'USER_CART_STREAM_RESPONSE',
-                {
-                  totalItems: filteredItems.length,
-                  streamType,
-                  items: filteredItems.map((item) => ({
-                    itemId: item.itemId,
-                    amount: item.amount,
-                    purchasePrice: item.purchasePrice,
-                    currency: item.currency,
-                    feePrice: item.feePrice || 0,
-                    taxAmount: item.taxAmount || 0,
-                  })),
-                },
-              );
-            }
+            return {
+              totalItems: filteredItems.length,
+              streamType,
+              items: filteredItems.map((item) => ({
+                itemId: item.itemId,
+                amount: item.amount,
+                purchasePrice: item.purchasePrice,
+                currency: item.currency,
+                feePrice: item.feePrice || 0,
+                taxAmount: item.taxAmount || 0,
+              })),
+            };
           }
-        },
-        error: (error) => {
-          this.logger.logError(requestId, error);
-          subscriber.error(error);
-        },
-        complete: () => {
-          this.logger.finalizeRequest(requestId);
-          subscriber.complete();
-        },
-      });
-    });
+        }
+        return {};
+      },
+    );
   }
 
   @GrpcMethod('CouponStreamService', 'StreamUserNotifications')
@@ -525,47 +307,25 @@ export class CouponGrpcController {
     data: MainUser,
     metadata: Metadata,
   ): Observable<UserNotificationStreamResponse> {
-    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
-    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
-    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
-    const userId = data
-      ? data.userId || (metadata.get('user-id')?.[0] as string)
-      : '';
+    const stream$ = this.couponService.streamUserNotificationsService(data);
 
-    const requestId = this.logger.initializeRequest(
+    return GrpcStreamLoggerHelper.createStreamHandler(
       'StreamUserNotifications',
-      userAgent,
-      ipAddress,
-      dns,
-      userId,
+      metadata,
+      this.logger,
+      stream$,
+      (userNotificationStreamResponse) => ({
+        id: userNotificationStreamResponse.id,
+        isRead: userNotificationStreamResponse.isRead,
+        createdAt: userNotificationStreamResponse.createdAt,
+        title: userNotificationStreamResponse.title,
+        body: userNotificationStreamResponse.body,
+        topic: userNotificationStreamResponse.topic,
+        screen: userNotificationStreamResponse.screen,
+        userId: userNotificationStreamResponse.userId,
+        streamType: userNotificationStreamResponse.streamType,
+      }),
     );
-
-    return new Observable((subscriber) => {
-      this.couponService.streamUserNotificationsService(data).subscribe({
-        next: (userNotificationStreamResponse) => {
-          this.logger.logStreamEvent(requestId, 'USER_NOTIFICATION', {
-            id: userNotificationStreamResponse.id,
-            isRead: userNotificationStreamResponse.isRead,
-            createdAt: userNotificationStreamResponse.createdAt,
-            title: userNotificationStreamResponse.title,
-            body: userNotificationStreamResponse.body,
-            topic: userNotificationStreamResponse.topic,
-            screen: userNotificationStreamResponse.screen,
-            userId: userNotificationStreamResponse.userId,
-            streamType: userNotificationStreamResponse.streamType,
-          });
-          subscriber.next(userNotificationStreamResponse);
-        },
-        error: (error) => {
-          this.logger.logError(requestId, error);
-          subscriber.error(error);
-        },
-        complete: () => {
-          this.logger.finalizeRequest(requestId);
-          subscriber.complete();
-        },
-      });
-    });
   }
 
   @GrpcMethod('CouponStreamService', 'EnvironmentStream')
@@ -573,52 +333,29 @@ export class CouponGrpcController {
     request: EmptyRequest,
     metadata: Metadata,
   ): Observable<EnvironmentResponse> {
-    const userAgent = (metadata.get('user-agent')?.[0] as string) || 'Unknown';
-    const ipAddress = (metadata.get('ip-address')?.[0] as string) || 'Unknown';
-    const dns = (metadata.get('dns')?.[0] as string) || 'Unknown';
-    const userId = metadata.get('user-id')?.[0] as string;
+    const stream$ = this.couponService.environmentStreamService();
 
-    const requestId = this.logger.initializeRequest(
+    return GrpcStreamLoggerHelper.createStreamHandler(
       'EnvironmentStream',
-      userAgent,
-      ipAddress,
-      dns,
-      userId,
+      metadata,
+      this.logger,
+      stream$,
+      (env) => ({
+        id: env.id,
+        allowInvites: env.allowInvites,
+        allowInviteAll: env.allowInviteAll,
+        stage: env.stage,
+        deleteUnsentReports: env.deleteUnsentReports,
+        useCrashlytics: env.useCrashlytics,
+        auditLogsCredentials: env.auditLogsCredentials,
+        requiredMinimumAndroidVersion: env.requiredMinimumAndroidVersion,
+        requiredMiliumOSVersion: env.requiredMinimumiOSVersion,
+        deleteAndroidUnsentReports: env.deleteAndroidUnsentReports,
+        deleteiOSUnsentReports: env.deleteiOSUnsentReports,
+        useAndroidCrashlytics: env.useAndroidCrashlytics,
+        useiOSCrashlytics: env.useiOSCrashlytics,
+        streamType: env.streamType,
+      }),
     );
-
-    return new Observable((subscriber) => {
-      this.couponService.environmentStreamService().subscribe({
-        next: (environmentResponse) => {
-          this.logger.logStreamEvent(requestId, 'ENVIRONMENT', {
-            id: environmentResponse.id,
-            allowInvites: environmentResponse.allowInvites,
-            allowInviteAll: environmentResponse.allowInviteAll,
-            stage: environmentResponse.stage,
-            deleteUnsentReports: environmentResponse.deleteUnsentReports,
-            useCrashlytics: environmentResponse.useCrashlytics,
-            auditLogsCredentials: environmentResponse.auditLogsCredentials,
-            requiredMinimumAndroidVersion:
-              environmentResponse.requiredMinimumAndroidVersion,
-            requiredMiliumOSVersion:
-              environmentResponse.requiredMinimumiOSVersion,
-            deleteAndroidUnsentReports:
-              environmentResponse.deleteAndroidUnsentReports,
-            deleteiOSUnsentReports: environmentResponse.deleteiOSUnsentReports,
-            useAndroidCrashlytics: environmentResponse.useAndroidCrashlytics,
-            useiOSCrashlytics: environmentResponse.useiOSCrashlytics,
-            streamType: environmentResponse.streamType,
-          });
-          subscriber.next(environmentResponse);
-        },
-        error: (error) => {
-          this.logger.logError(requestId, error);
-          subscriber.error(error);
-        },
-        complete: () => {
-          this.logger.finalizeRequest(requestId);
-          subscriber.complete();
-        },
-      });
-    });
   }
 }

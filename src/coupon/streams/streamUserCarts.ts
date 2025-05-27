@@ -119,7 +119,7 @@ export const streamUserCarts = (
           Object.keys(updatedFields).some(key => key.startsWith('items.')) ||
           change.updateDescription?.removedFields?.some((field: string) => field.startsWith('items.'))) {
 
-        logger.log('Items array was modified', {
+        logger.log('User Carts ITemL array has modified', {
           context: 'streamUserCarts',
           previousLength: previousItems.length,
           currentLength: currentItems.length,
