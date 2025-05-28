@@ -1,13 +1,27 @@
 import { Observable } from 'rxjs';
 import { Db } from 'mongodb';
-import { ActiveDrawnResponse, UserPrefrences } from 'src/generated/coupon_stream';
-import { ACTIVE_DRAWN_STATUS, DEFAUlT_SETTINGS } from 'src/config/constant';
+import {
+  ActiveDrawnResponse,
+  UserPrefrences,
+} from 'src/generated/coupon_stream';
+import {
+  ACTIVE_DRAWN_STATUS,
+  DEFAUlT_SETTINGS,
+  DRAW_NOT_TRACKED_STATUS,
+} from 'src/config/constant';
 import { LoggerService } from '@nestjs/common';
+import { STREAM_TYPE } from 'src/types';
 
-export function streamActiveDrawn(db: Db, userPrefrences: UserPrefrences, logger: LoggerService): Observable<ActiveDrawnResponse> {
-  return new Observable(subscriber => {
-    const languageCode = userPrefrences?.languageCode || DEFAUlT_SETTINGS.LANGUAGE_CODE;
-    const brightness = userPrefrences?.brightness || DEFAUlT_SETTINGS.BRIGHTNESS;
+export function streamActiveDrawn(
+  db: Db,
+  userPrefrences: UserPrefrences,
+  logger: LoggerService,
+): Observable<ActiveDrawnResponse> {
+  return new Observable((subscriber) => {
+    const languageCode =
+      userPrefrences?.languageCode || DEFAUlT_SETTINGS.LANGUAGE_CODE;
+    const brightness =
+      userPrefrences?.brightness || DEFAUlT_SETTINGS.BRIGHTNESS;
 
     const streamMetrics = {
       startTime: Date.now(),
@@ -26,9 +40,13 @@ export function streamActiveDrawn(db: Db, userPrefrences: UserPrefrences, logger
       try {
         const fetchStartTime = Date.now();
 
-        const initialDocuments = db.collection('draws').find({ status: { $in: ACTIVE_DRAWN_STATUS } });
+        const initialDocuments = db
+          .collection('draws')
+          .find({ status: { $in: ACTIVE_DRAWN_STATUS } });
         for await (const document of initialDocuments) {
-          subscriber.next(mapActiveDrawn(document, languageCode, brightness,0));
+          subscriber.next(
+            mapActiveDrawn(document, languageCode, brightness, 0),
+          );
         }
 
         logger.log('Initial fetch completed', {
@@ -50,31 +68,18 @@ export function streamActiveDrawn(db: Db, userPrefrences: UserPrefrences, logger
           },
         });
 
-
         console.error('Error fetching initial documents:', error);
         subscriber.error(error);
       }
     })();
 
-    const changeStream = db.collection('draws').watch(
-      [
-        {
-          $match: {
-            $or: [
-              { 'fullDocument.status': { $in: ACTIVE_DRAWN_STATUS } },
-              { 'updateDescription.updatedFields.status': { $in: ACTIVE_DRAWN_STATUS } }
-            ],
-          },
-        },
-      ],
-      { fullDocument: 'updateLookup' }
-    );
+    const changeStream = db
+      .collection('draws')
+      .watch([], { fullDocument: 'updateLookup' });
 
     logger.log('Change stream established', {
       context: 'streamActiveDrawn',
     });
-
-
 
     changeStream.on('change', (change: any) => {
       if (!change.fullDocument) {
@@ -87,6 +92,24 @@ export function streamActiveDrawn(db: Db, userPrefrences: UserPrefrences, logger
         return;
       }
 
+      const currentStatus = change.fullDocument.status;
+      if (DRAW_NOT_TRACKED_STATUS.includes(currentStatus)) {
+        logger.log('Removing coupon from stream due to status change', {
+          status: currentStatus,
+          couponId: change.fullDocument.id,
+        });
+
+        subscriber.next(
+          mapActiveDrawn(
+            change.fullDocument,
+            languageCode,
+            brightness,
+            STREAM_TYPE.DELETE,
+          ),
+        );
+        return;
+      }
+
       streamMetrics.changeEventsCount++;
       logger.log('Change event processing', {
         context: 'streamActiveDrawn',
@@ -96,10 +119,12 @@ export function streamActiveDrawn(db: Db, userPrefrences: UserPrefrences, logger
         timeSinceStart: Date.now() - streamMetrics.startTime,
       });
 
-      subscriber.next(mapActiveDrawn(change.fullDocument, languageCode, brightness, 1));
+      subscriber.next(
+        mapActiveDrawn(change.fullDocument, languageCode, brightness, 1),
+      );
     });
 
-    changeStream.on('error', error => {
+    changeStream.on('error', (error) => {
       streamMetrics.errors++;
       logger.error('Change stream error', {
         context: 'streamActiveDrawn',
@@ -134,8 +159,12 @@ export function streamActiveDrawn(db: Db, userPrefrences: UserPrefrences, logger
   });
 }
 
-
-function mapActiveDrawn(doc: any, languageCode: string, brightness: string, streamType: number): ActiveDrawnResponse {
+function mapActiveDrawn(
+  doc: any,
+  languageCode: string,
+  brightness: string,
+  streamType: number,
+): ActiveDrawnResponse {
   return {
     id: doc._id ?? null,
     contractId: doc.contractId ?? null,
@@ -151,7 +180,8 @@ function mapActiveDrawn(doc: any, languageCode: string, brightness: string, stre
     descriptionFile: doc.descriptionFile?.[languageCode] || 'No Description',
     logo: doc.logo?.[brightness]?.[languageCode] || '',
     amountOfNumbersByParticipant: doc.amountOfNumbersByParticipant ?? 0,
-    grandDrawFreeTicketSpendingsAmount: doc.grandDrawFreeTicketSpendingsAmount ?? null,
+    grandDrawFreeTicketSpendingsAmount:
+      doc.grandDrawFreeTicketSpendingsAmount ?? null,
     drawNumbersCount: doc.drawNumbersCount ?? 0,
     participantsCount: doc.participantsCount ?? 0,
     amountOfChosenNumbers: doc.amountOfChosenNumbers ?? 0,
@@ -160,13 +190,12 @@ function mapActiveDrawn(doc: any, languageCode: string, brightness: string, stre
     createdAt: doc.createdAt?.$date || doc.createdAt || null,
     status: doc.status || '',
     specialEvent: doc.specialEvent
-    ? {
-        cardColor: doc.specialEvent.cardColor,
-        title: doc.specialEvent.title?.[languageCode],
-        shortDescription: doc.specialEvent.shortDescription?.[languageCode],
-      }
-    : undefined,
-    streamType: streamType
+      ? {
+          cardColor: doc.specialEvent.cardColor,
+          title: doc.specialEvent.title?.[languageCode],
+          shortDescription: doc.specialEvent.shortDescription?.[languageCode],
+        }
+      : undefined,
+    streamType: streamType,
   };
 }
-

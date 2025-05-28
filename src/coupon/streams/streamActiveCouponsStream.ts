@@ -4,7 +4,7 @@ import {
   User,
   ActiveCouponStreamResponse,
 } from '../../generated/coupon_stream';
-import { USER_COUPON_STATUS } from 'src/config/constant';
+import { NOT_TRACKED_USER_COUPON_STATUS, USER_COUPON_STATUS } from 'src/config/constant';
 import { LoggerService } from '@nestjs/common';
 import { STREAM_TYPE } from 'src/types';
 
@@ -116,7 +116,6 @@ export function streamActiveCouponsStream(
             {
               $match: {
                 'fullDocument.userId': new ObjectId(userId),
-                'fullDocument.status': { $in: USER_COUPON_STATUS },
                 'fullDocument.redeemedBySelfActivation': false,
               },
             },
@@ -139,6 +138,35 @@ export function streamActiveCouponsStream(
           }
 
           if (change.fullDocument) {
+            const currentStatus = change.fullDocument.status;
+
+            if (NOT_TRACKED_USER_COUPON_STATUS.includes(currentStatus)) {
+              logger.log('Removing coupon from stream due to status change', {
+                status: currentStatus,
+                couponId: change.fullDocument.id,
+              });
+
+              subscriber.next({
+                id: change.fullDocument.id,
+                redemptionInfo: change.fullDocument.redemptionInfo || null,
+                code: change.fullDocument.code,
+                businessId: change.fullDocument.businessId,
+                couponIssueId: change.fullDocument.couponIssueId,
+                redeemedBySelfActivation: change.fullDocument.redeemedBySelfActivation,
+                purchasePrice: change.fullDocument.purchasePrice,
+                purchaseCurrency: change.fullDocument.purchaseCurrency,
+                userId: change.fullDocument.userId,
+                status: change.fullDocument.status,
+                expireAt: change.fullDocument.expireAt,
+                createdAt: change.fullDocument.createdAt,
+                purchasedAt: change.fullDocument.purchasedAt,
+                sellPriceAmount: change.fullDocument.sellPriceAmount,
+                streamType: STREAM_TYPE.DELETE,
+              });
+
+              return;
+            }
+
             const couponIssueDetails = await db
               .collection('couponIssues')
               .findOne({
@@ -156,7 +184,7 @@ export function streamActiveCouponsStream(
             logger.log('Change event processing', {
               context: 'streamActiveCouponsStream',
               operationType: change.operationType,
-              documentId: change.fullDocument._id,
+              documentId: change.fullDocument.id,
               totalChanges: streamMetrics.changeEventsCount,
               timeSinceStart: Date.now() - streamMetrics.startTime,
             });
@@ -250,3 +278,4 @@ function mapToCouponIssue(
     streamType: streamType,
   };
 }
+
