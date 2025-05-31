@@ -150,7 +150,7 @@ export function streamActiveCouponsStream(
               });
 
              subscriber.next({
-                id: change.fullDocument.id,
+                id: change.fullDocument._id,
                 redemptionInfo: change.fullDocument.redemptionInfo || null,
                 code: change.fullDocument.code,
                 businessId: change.fullDocument.businessId,
@@ -177,7 +177,7 @@ export function streamActiveCouponsStream(
               });
 
               subscriber.next({
-                id: change.fullDocument.id,
+                id: change.fullDocument._id,
                 redemptionInfo: change.fullDocument.redemptionInfo || null,
                 code: change.fullDocument.code,
                 businessId: change.fullDocument.businessId,
