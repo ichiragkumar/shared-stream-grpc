@@ -144,6 +144,33 @@ export function streamActiveCouponsStream(
             const redeemedBySelfActivation =
               change.fullDocument.redeemedBySelfActivation;
 
+
+            if (currentStatus === USER_COUPON_STATUS[0]) {
+              logger.log('Coupon status changed to active', {
+                couponId: change.fullDocument.id,
+              });
+
+              subscriber.next({
+                id: change.fullDocument._id,
+                redemptionInfo: change.fullDocument.redemptionInfo || null,
+                code: change.fullDocument.code,
+                businessId: change.fullDocument.businessId,
+                couponIssueId: change.fullDocument.couponIssueId,
+                redeemedBySelfActivation: change.fullDocument.redeemedBySelfActivation,
+                purchasePrice: change.fullDocument.purchasePrice,
+                purchaseCurrency: change.fullDocument.purchaseCurrency,
+                userId: change.fullDocument.userId,
+                status: change.fullDocument.status,
+                expireAt: change.fullDocument.expireAt,
+                createdAt: change.fullDocument.createdAt,
+                purchasedAt: change.fullDocument.purchasedAt,
+                sellPriceAmount: change.fullDocument.sellPriceAmount,
+                streamType: STREAM_TYPE.UPDATE,
+              });
+
+              return;
+            }
+
             if (redeemedBySelfActivation === true) {
               logger.log('Coupon redeemed by self activation', {
                 couponId: change.fullDocument.id,
@@ -196,6 +223,8 @@ export function streamActiveCouponsStream(
 
               return;
             }
+
+            
 
             const couponIssueDetails = await db
               .collection('couponIssues')
@@ -308,3 +337,5 @@ function mapToCouponIssue(
     streamType: streamType,
   };
 }
+
+
