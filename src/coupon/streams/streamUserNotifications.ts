@@ -52,7 +52,7 @@ export function streamUserNotifications(
           // even if it is true, and it comes in the stream, it will be shown to the user
           // isRead: false,
 
-          createdAt: { $gte: PREVIOUS_DATE },
+
         };
 
         const notifications = await db
