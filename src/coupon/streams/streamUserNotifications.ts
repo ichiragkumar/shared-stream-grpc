@@ -66,7 +66,7 @@ export function streamUserNotifications(
           logger.warn('No user notification found', {
             context: 'streamUserNotifications',
             userId,
-          });
+        });
 
           subscriber.next({
             id: '',

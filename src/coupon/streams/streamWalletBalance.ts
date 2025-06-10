@@ -26,12 +26,12 @@ export function streamWalletBalance(db: Db, data: User,logger:LoggerService): Ob
     (async () => {
       try {
         const fetchStartTime = Date.now();
-            const userWalletDocument = await db.collection('wallets').findOne({
+        const userWalletDocument = await db.collection('wallets').findOne({
               userId: new ObjectId(userId)
-            });
+        });
 
         if (!userWalletDocument) {
-          logger.warn('No wallet found for user', {
+          logger.warn('No wallet found for user ', {
             context: 'streamWalletBalance',
             userId,
           });
