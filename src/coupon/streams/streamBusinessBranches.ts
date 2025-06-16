@@ -41,6 +41,7 @@ export function streamBusinessBranches(
             }
           },
           { $unwind: { path: "$businessDetails", preserveNullAndEmptyArrays: true } },
+          { $sort: { createdAt: -1 } }
           
         ]);
 
@@ -119,7 +120,8 @@ export function streamBusinessBranches(
 
       const businessDetails = await db.collection('businesses').findOne(
         { _id: change.fullDocument.businessId }
-      );
+      )
+
 
 
       const updatedBranch = {

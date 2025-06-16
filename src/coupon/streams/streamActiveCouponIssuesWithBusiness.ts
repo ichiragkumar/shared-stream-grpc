@@ -41,7 +41,8 @@ export function streamActiveCouponIssuesWithBusiness(db: Db, userPrefrences: Use
           as: 'business'
         }
       },
-      { $unwind: { path: '$business', preserveNullAndEmptyArrays: true } }
+      { $unwind: { path: '$business', preserveNullAndEmptyArrays: true } },
+      { $sort: { createdAt: -1 } }
     ];
 
     

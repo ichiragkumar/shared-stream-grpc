@@ -32,7 +32,12 @@ export function streamActiveBusinessesWithContractTypes(
     (async () => {
       try {
         const fetchStartTime = Date.now();
-        const initialDocuments = await db.collection('businesses').find({ contractTypes: { $in: VALID_CONTRACT_TYPES } }).toArray();
+        const initialDocuments = await db.collection('businesses').find(
+          { contractTypes: { $in: VALID_CONTRACT_TYPES } }
+        )
+        .sort({ createdAt: -1 })
+        .toArray();
+
         for (const document of initialDocuments) {
           subscriber.next(mapBusiness(document, languageCode, brightness, STREAM_TYPE.BASE));
         }
