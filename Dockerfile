@@ -1,5 +1,7 @@
 # First stage: Build the application
-FROM node:18-bullseye AS build
+FROM node:16-alpine AS build
+
+
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
@@ -8,6 +10,8 @@ RUN npm run build
 
 # Second stage: Prepare the production image
 FROM node:16-alpine
+
+
 WORKDIR /app
 COPY package.json .
 RUN npm install --only=production
