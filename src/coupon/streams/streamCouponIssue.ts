@@ -1,17 +1,19 @@
 import { Observable } from 'rxjs';
-import { Db } from 'mongodb';
+import { Db, ChangeStream } from 'mongodb';
 import { CouponIssue, UserPrefrences } from '../../generated/coupon_stream';
 import { STREAM_TYPE } from 'src/types';
 import { DEFAUlT_SETTINGS, Language } from 'src/config/constant';
 import { TRACKED_STATUS, NOT_TRACKED_STATUS } from 'src/config/constant';
 import { LoggerService } from '@nestjs/common';
+import { ConnectionManagerService } from 'src/config/connection-manager.service';
 
 
 
 export function streamCouponIssues(
   userPrefrences: UserPrefrences,
   db: Db,
-  logger: LoggerService
+  logger: LoggerService,
+  connectionManager?: ConnectionManagerService
 ): Observable<CouponIssue> {
   return new Observable((subscriber) => {
     const streamMetrics = {
@@ -58,13 +60,26 @@ export function streamCouponIssues(
         });
 
         const changeStreamStartTime = Date.now();
-        const changeStream = db.collection('couponIssues').watch([], { fullDocument: 'updateLookup' });
-
-
-        logger.log('Change stream established', {
-          context: 'streamCouponIssues',
-          setupTime: Date.now() - changeStreamStartTime
-        });
+        let changeStream: ChangeStream;
+        
+        // Use ConnectionManager if available for proper stream management
+        if (connectionManager) {
+          changeStream = connectionManager.createChangeStream(
+            db.collection('couponIssues'),
+            [],
+            { fullDocument: 'updateLookup' }
+          );
+          logger.log('Managed change stream established', {
+            context: 'streamCouponIssues',
+            setupTime: Date.now() - changeStreamStartTime
+          });
+        } else {
+          changeStream = db.collection('couponIssues').watch([], { fullDocument: 'updateLookup' });
+          logger.log('Standard change stream established', {
+            context: 'streamCouponIssues',
+            setupTime: Date.now() - changeStreamStartTime
+          });
+        }
         changeStream.on('change', (change: any) => {
 
           if (!change.fullDocument){

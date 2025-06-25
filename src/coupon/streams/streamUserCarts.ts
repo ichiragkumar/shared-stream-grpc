@@ -1,5 +1,5 @@
 import { LoggerService } from '@nestjs/common';
-import { Db, ObjectId } from 'mongodb';
+import { Db, ObjectId, ChangeStream } from 'mongodb';
 import { Observable } from 'rxjs';
 import { roundFloat } from 'src/config/constant';
 import {
@@ -7,11 +7,15 @@ import {
   UserCartStreamResponse,
 } from 'src/generated/coupon_stream';
 import { STREAM_TYPE } from 'src/types';
+import { ConnectionManagerService } from 'src/config/connection-manager.service';
+import { SharedChangeStreamService } from 'src/config/shared-change-stream.service';
 
 export const streamUserCarts = (
   db: Db,
   user: { userId: string },
   logger: LoggerService,
+  connectionManager?: ConnectionManagerService,
+  sharedChangeStream?: SharedChangeStreamService
 ): Observable<UserCartStreamResponse> => {
   return new Observable((subscriber) => {
     const { userId } = user;
@@ -70,27 +74,100 @@ export const streamUserCarts = (
       }
     })();
 
-    const changeStream = db.collection('carts').watch(
-      [
-        {
-          $match: {
-            'fullDocument.userId': new ObjectId(userId),
-          },
+    // Use SharedChangeStreamService if available for maximum connection efficiency
+    let changeStream;
+    let isUsingSharedStream = false;
+
+    if (sharedChangeStream) {
+      // Get a shared change stream for the carts collection with this user's filter
+      const userIdString = userId.toString();
+      isUsingSharedStream = true;
+
+      // Create a subscription to the shared change stream
+      const sharedStream = sharedChangeStream.getSharedChangeStream(
+        'carts',
+        (change) => {
+          // Filter for changes that match this user's ID
+          return change.fullDocument?.userId?.toString() === userIdString;
+        }
+      );
+
+      // Set up a subscriber to the shared stream
+      sharedStream.subscribe({
+        next: (change) => {
+          logger.log('Change event received from shared stream', {
+            operationType: change.operationType,
+            documentId: change.fullDocument?._id,
+          });
+
+          // Process the change event
+          processChangeEvent(change);
         },
-      ],
-      { fullDocument: 'updateLookup' },
-    );
-
-    logger.log('Change stream established', { context: 'streamUserCarts' });
-
-    changeStream.on('change', async (change: any) => {
-      logger.log('Change event received', {
-        operationType: change.operationType,
-        fullDocument: change.fullDocument,
-        updatedFields: change.updateDescription?.updatedFields,
-        removedFields: change.updateDescription?.removedFields,
+        error: (error) => {
+          logger.error('Shared change stream error', {
+            context: 'streamUserCarts',
+            error: error.message,
+          });
+          subscriber.error(error);
+        },
+        complete: () => {
+          logger.log('Shared change stream completed', { context: 'streamUserCarts' });
+          subscriber.complete();
+        }
       });
 
+      // Add cleanup when the subscriber unsubscribes
+      subscriber.add(() => {
+        logger.log('Stream cleanup (shared stream)', {
+          context: 'streamUserCarts',
+          metrics: {
+            duration: Date.now() - streamMetrics.startTime,
+            initialDocuments: streamMetrics.initialDocumentsCount,
+            changeEvents: streamMetrics.changeEventsCount,
+            errors: streamMetrics.errors,
+            memoryUsage: process.memoryUsage(),
+          },
+        });
+      });
+
+      logger.log('Using shared change stream for collection: carts', { context: 'streamUserCarts' });
+      return; // Early return, the shared stream subscription is already set up
+    } else if (connectionManager) {
+      // Fallback to ConnectionManager if SharedChangeStreamService isn't available
+      changeStream = connectionManager.createChangeStream(
+        db.collection('carts'),
+        [
+          {
+            $match: {
+              'fullDocument.userId': new ObjectId(userId),
+            },
+          },
+        ],
+        { fullDocument: 'updateLookup' }
+      );
+      logger.log('Managed change stream established via ConnectionManager', { context: 'streamUserCarts' });
+    } else {
+      // Last resort: use a direct change stream
+      changeStream = db.collection('carts').watch(
+        [
+          {
+            $match: {
+              'fullDocument.userId': new ObjectId(userId),
+            },
+          },
+        ],
+        { fullDocument: 'updateLookup' },
+      );
+      logger.log('Standard change stream established', { context: 'streamUserCarts' });
+    }
+
+    // Function to process change events (used by both shared and direct change streams)
+    function processChangeEvent(change: any) {
+      logger.log('Change event received', {
+        operationType: change.operationType,
+        documentId: change.fullDocument?._id,
+        updatedFields: Object.keys(change.updateDescription?.updatedFields || {}).length,
+      });
 
       streamMetrics.changeEventsCount++;
 
@@ -124,10 +201,10 @@ export const streamUserCarts = (
         updatedFields.items !== undefined ||
         Object.keys(updatedFields).some((key) => key.startsWith('items.')) ||
         change.updateDescription?.removedFields?.some((field: string) =>
-          field.startsWith('items.'),
+          field.startsWith('items.')
         )
       ) {
-        logger.log('User Carts ITemL array has modified', {
+        logger.log('User Cart Array modified', {
           context: 'streamUserCarts',
           previousLength: previousItems.length,
           currentLength: currentItems.length,
@@ -135,14 +212,14 @@ export const streamUserCarts = (
 
         // CASE 1: Check for deleted items
         const previousItemIds = new Set(
-          previousItems.map((item) => item.itemId?.toString()),
+          previousItems.map((item) => item.itemId?.toString())
         );
         const currentItemIds = new Set(
-          currentItems.map((item: any) => item.itemId?.toString()),
+          currentItems.map((item: any) => item.itemId?.toString())
         );
 
         const deletedItemIds = Array.from(previousItemIds).filter(
-          (id) => !currentItemIds.has(id),
+          (id) => !currentItemIds.has(id)
         );
 
         if (deletedItemIds.length > 0) {
@@ -153,12 +230,12 @@ export const streamUserCarts = (
 
           // Only emit the deleted items
           const deletedItems = previousItems.filter((item) =>
-            deletedItemIds.includes(item.itemId?.toString()),
+            deletedItemIds.includes(item.itemId?.toString())
           );
 
           subscriber.next({
             items: deletedItems.map((item) =>
-              mapUserCartResponse(item, STREAM_TYPE.DELETE),
+              mapUserCartResponse(item, STREAM_TYPE.DELETE)
             ),
             streamType: STREAM_TYPE.DELETE,
           });
@@ -173,8 +250,8 @@ export const streamUserCarts = (
           (item: any) =>
             !previousItems.some(
               (prevItem) =>
-                prevItem.itemId?.toString() === item.itemId?.toString(),
-            ),
+                prevItem.itemId?.toString() === item.itemId?.toString()
+            )
         );
 
         if (newItems.length > 0) {
@@ -186,7 +263,7 @@ export const streamUserCarts = (
           // Emit only the new items
           subscriber.next({
             items: newItems.map((item: any) =>
-              mapUserCartResponse(item, STREAM_TYPE.INSERT),
+              mapUserCartResponse(item, STREAM_TYPE.INSERT)
             ),
             streamType: STREAM_TYPE.INSERT,
           });
@@ -204,7 +281,7 @@ export const streamUserCarts = (
           // find which items were modified by comparing with previous state
           modifiedItems = currentItems.filter((item: any) => {
             const prevItem = previousItems.find(
-              (p) => p.itemId?.toString() === item.itemId?.toString(),
+              (p) => p.itemId?.toString() === item.itemId?.toString()
             );
             return (
               prevItem && JSON.stringify(item) !== JSON.stringify(prevItem)
@@ -235,14 +312,14 @@ export const streamUserCarts = (
           logger.log('Items were updated', {
             context: 'streamUserCarts',
             modifiedItemIds: modifiedItems.map((item: any) =>
-              item.itemId?.toString(),
+              item.itemId?.toString()
             ),
           });
 
           // Emitting only the modified items
           subscriber.next({
             items: modifiedItems.map((item) =>
-              mapUserCartResponse(item, STREAM_TYPE.UPDATE),
+              mapUserCartResponse(item, STREAM_TYPE.UPDATE)
             ),
             streamType: STREAM_TYPE.UPDATE,
           });
@@ -251,40 +328,49 @@ export const streamUserCarts = (
         // Updating previous state
         previousItems = currentItems;
       }
-    });
+    }
 
-    changeStream.on('error', (error) => {
-      streamMetrics.errors++;
-      logger.error('Change stream error', {
-        context: 'streamUserCarts',
-        error: {
-          message: error.message,
-          stack: error.stack,
-        },
-        metrics: {
-          totalErrors: streamMetrics.errors,
-          uptime: Date.now() - streamMetrics.startTime,
-        },
+    // Only set up the on('change') event handler if we're not using the shared stream
+    if (!isUsingSharedStream) {
+      changeStream.on('change', async (change: any) => {
+        processChangeEvent(change);
+      });
+    }
+    // Only set up error and cleanup handlers if we're not using the shared stream
+    if (!isUsingSharedStream) {
+      changeStream.on('error', (error) => {
+        streamMetrics.errors++;
+        logger.error('Change stream error', {
+          context: 'streamUserCarts',
+          error: {
+            message: error.message,
+            stack: error.stack,
+          },
+          metrics: {
+            totalErrors: streamMetrics.errors,
+            uptime: Date.now() - streamMetrics.startTime,
+          },
+        });
+
+        subscriber.error(error);
       });
 
-      subscriber.error(error);
-    });
+      subscriber.add(() => {
+        logger.log('Stream cleanup (direct stream)', {
+          context: 'streamUserCarts',
+          metrics: {
+            duration: Date.now() - streamMetrics.startTime,
+            initialDocuments: streamMetrics.initialDocumentsCount,
+            changeEvents: streamMetrics.changeEventsCount,
+            errors: streamMetrics.errors,
+            memoryUsage: process.memoryUsage(),
+          },
+        });
 
-    subscriber.add(() => {
-      logger.log('Stream cleanup', {
-        context: 'streamUserCarts',
-        metrics: {
-          duration: Date.now() - streamMetrics.startTime,
-          initialDocuments: streamMetrics.initialDocumentsCount,
-          changeEvents: streamMetrics.changeEventsCount,
-          errors: streamMetrics.errors,
-          memoryUsage: process.memoryUsage(),
-        },
+        logger.log('Closing change stream');
+        changeStream.close();
       });
-
-      console.log('Cleaning up change stream');
-      changeStream.close();
-    });
+    }
   });
 };
 

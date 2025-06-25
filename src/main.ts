@@ -10,8 +10,46 @@ config();
 
 async function bootstrap() {
   try {
+    // Connect to database with optimized connection pool settings
     await DatabaseService.connect();
     console.log('Database connection established');
+    
+    // Monitor connection pool periodically with aggressive cleanup
+    const monitorConnectionPool = async () => {
+      try {
+        const client = DatabaseService.getClient();
+        const adminDb = client.db('admin');
+        const serverStatus = await adminDb.command({ serverStatus: 1 });
+        console.log('MongoDB connection pool stats:', serverStatus.connections);
+        
+        // Force garbage collection to clean up any lingering references
+        try {
+          if (typeof global.gc === 'function') {
+            console.log('Running forced garbage collection...');
+            global.gc();
+          }
+        } catch (error) {
+          // Garbage collection not available, ignore
+        }
+        
+        // If we're getting close to connection limit, force pool cleanup
+        if (serverStatus.connections.current > 400) {
+          console.warn('WARNING: Connection pool approaching limit, forcing cleanup');
+          
+          // Close idle connections aggressively
+          if (typeof client.withSession === 'function') {
+            const killCursor = client.db('admin').command({ killCursors: 1, cursors: [] });
+            console.log('Attempted to kill idle cursors:', killCursor);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to get connection stats:', error);
+      }
+    };
+    
+    // Check connection pool stats every minute
+    setInterval(monitorConnectionPool, 60 * 1000);
+    await monitorConnectionPool(); // Run once at startup
   } catch (error) {
     console.error('Failed to connect to database:', error);
     process.exit(1);

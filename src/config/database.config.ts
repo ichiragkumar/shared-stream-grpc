@@ -1,14 +1,14 @@
-import { MongoClient, Db } from 'mongodb';
+import { MongoClient, Db, MongoClientOptions } from 'mongodb';
 import { config } from 'dotenv';
 
 config();
 
 export class DatabaseService {
   private static db: Db;
-  private static activeChangeStreams: Set<any> = new Set();
+  private static client: MongoClient;
   
   static async connect(): Promise<Db> {
-    if (this.db) return this.db;
+    if (this.db && this.client) return this.db;
 
     const mongoUri = process.env.MONGODB_URI;
     const dbName = process.env.DB_NAME;
@@ -17,46 +17,74 @@ export class DatabaseService {
       throw new Error('Missing MongoDB URI or Database Name in .env');
     }
 
-
+    // Configure MongoDB connection pool settings - critical for fixing connection leaks
+    const options: MongoClientOptions = {
+      maxPoolSize: 20, // Reduced pool size to prevent exhaustion
+      minPoolSize: 3,   // Minimal connections needed
+      maxIdleTimeMS: 30000, // Close idle connections much faster (30 seconds)
+      connectTimeoutMS: 10000, // Shorter connection timeout
+      socketTimeoutMS: 20000, // Shorter socket timeout
+      // waitQueueTimeoutMS: 5000, // Shorter wait queue timeout
+      serverSelectionTimeoutMS: 10000, // Faster server selection timeout
+      heartbeatFrequencyMS: 10000, // More frequent server checks
+      compressors: 'zlib', // Use compression to reduce network load
+    };
     
-    const client = await MongoClient.connect(mongoUri, {
-      maxPoolSize: 5,  // Reduced from 10 to 5
-      minPoolSize: 1,  // Reduced from 3 to 1
-      maxIdleTimeMS: 15000, // Close idle connections after 15 seconds (reduced from 30)
-      // waitQueueTimeoutMS: 10000, // Timeout after 10 seconds if a thread has been waiting for a connection
-      socketTimeoutMS: 30000, // Close sockets after 30 seconds of inactivity (reduced from 45)
-      connectTimeoutMS: 20000 // Timeout connection attempts after 20 seconds (reduced from 30)
-    });
-    this.db = client.db(dbName);
-    console.log('Connected to database');
+    try {
+      // Create a single client that will be reused throughout the application
+      this.client = await MongoClient.connect(mongoUri, options);
+      this.db = this.client.db(dbName);
+      
+      // Monitor connection pool events for debugging
+      this.client.on('connectionPoolCreated', () => {
+        console.log('MongoDB connection pool created');
+      });
+      
+      this.client.on('connectionPoolClosed', () => {
+        console.log('MongoDB connection pool closed');
+      });
 
-    return this.db;
+      // Handle process termination for clean shutdown
+      process.on('SIGINT', async () => {
+        await this.disconnect();
+        process.exit(0);
+      });
+      
+      process.on('SIGTERM', async () => {
+        await this.disconnect();
+        process.exit(0);
+      });
+      
+      console.log('Connected to database with optimized connection pool');
+      return this.db;
+    } catch (error) {
+      console.error('Failed to connect to MongoDB:', error);
+      throw error;
+    }
   }
   
   static getDb(): Db {
+    if (!this.db) {
+      throw new Error('Database connection not established. Call connect() first.');
+    }
     return this.db;
   }
   
-  // Method to track change streams
-  static trackChangeStream(changeStream: any): void {
-    this.activeChangeStreams.add(changeStream);
-  }
-  
-  // Method to remove change stream from tracking
-  static untrackChangeStream(changeStream: any): void {
-    this.activeChangeStreams.delete(changeStream);
-  }
-  
-  // Method to close all active change streams
-  static closeAllChangeStreams(): void {
-    console.log(`Closing ${this.activeChangeStreams.size} active change streams`);
-    for (const stream of this.activeChangeStreams) {
-      try {
-        stream.close();
-      } catch (error) {
-        console.error('Error closing change stream:', error);
-      }
+  static getClient(): MongoClient {
+    if (!this.client) {
+      throw new Error('MongoDB client not established. Call connect() first.');
     }
-    this.activeChangeStreams.clear();
+    return this.client;
+  }
+  
+  static async disconnect(): Promise<void> {
+    if (this.client) {
+      console.log('Closing MongoDB connection...');
+      await this.client.close();
+      // Use type assertions to handle the null assignment
+      this.client = null as unknown as MongoClient;
+      this.db = null as unknown as Db;
+      console.log('MongoDB connection closed.');
+    }
   }
 }

@@ -21,6 +21,8 @@ import {
 } from "../generated/coupon_stream"
 import { Db } from 'mongodb';
 import { DatabaseService } from 'src/config/database.config';
+import { ConnectionManagerService } from 'src/config/connection-manager.service';
+import { SharedChangeStreamService } from 'src/config/shared-change-stream.service';
 import { streamCouponIssues } from './streams/streamCouponIssue';
 import { streamActiveCouponIssuesWithBusiness } from './streams/streamActiveCouponIssuesWithBusiness';
 import { streamActiveBusinessesWithContractTypes } from './streams/streamActiveBusinessesWithContractTypes';
@@ -56,16 +58,32 @@ interface ActiveCouponIssueWithBusiness {
 @Injectable()
 export class CouponService {
   private db: Db;
-  constructor(private readonly logger: LoggerService) {}
+  constructor(
+    private readonly logger: LoggerService,
+    private readonly connectionManager: ConnectionManagerService,
+    private readonly sharedChangeStream: SharedChangeStreamService
+  ) {}
 
   async onModuleInit() {
-    this.db = DatabaseService.getDb();
-    this.logger.log('Database connected successfully.');
+    try {
+      // Get the existing db instance from the DatabaseService
+      this.db = DatabaseService.getDb();
+      this.logger.log('Database connection obtained successfully.');
+      
+      // Log the current connection pool stats
+      const client = DatabaseService.getClient();
+      const adminDb = client.db('admin');
+      const serverStatus = await adminDb.command({ serverStatus: 1 });
+      this.logger.log('MongoDB connection pool stats', { connections: serverStatus.connections });
+    } catch (error) {
+      this.logger.error('Failed to obtain database connection', error instanceof Error ? error.message : String(error));
+      throw error;
+    }
   }
 
   streamCouponIssuesService(data: UserPrefrences ): Observable<CouponIssue> {
     this.logger.log('streamCouponIssuesService called', { userPrefrences: data });
-    return streamCouponIssues(data, this.db, this.logger);
+    return streamCouponIssues(data, this.db, this.logger, this.connectionManager);
   }
 
   streamMoreCouponRequestsService(data: User): Observable<MoreCouponRequest> {
@@ -120,7 +138,7 @@ export class CouponService {
 
   UserCartStreamResponseService(data: User): Observable<UserCartStreamResponse> {
     this.logger.log('UserCartStreamResponseService called', { user: data });
-    return streamUserCarts(this.db, data, this.logger);
+    return streamUserCarts(this.db, data, this.logger, this.connectionManager, this.sharedChangeStream);
   }
   
 
