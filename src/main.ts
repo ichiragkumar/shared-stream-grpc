@@ -37,10 +37,10 @@ async function bootstrap() {
           console.warn('WARNING: Connection pool approaching limit, forcing cleanup');
           
           // Close idle connections aggressively
-          if (typeof client.withSession === 'function') {
-            const killCursor = client.db('admin').command({ killCursors: 1, cursors: [] });
-            console.log('Attempted to kill idle cursors:', killCursor);
-          }
+          // if (typeof client.withSession === 'function') {
+          //   const killCursor = client.db('admin').command({ killCursors: 1, cursors: [] });
+          //   console.log('Attempted to kill idle cursors:', killCursor);
+          // }
         }
       } catch (error) {
         console.error('Failed to get connection stats:', error);
