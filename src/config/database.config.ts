@@ -23,7 +23,7 @@ export class DatabaseService {
       maxPoolSize: 5,  // Reduced from 10 to 5
       minPoolSize: 1,  // Reduced from 3 to 1
       maxIdleTimeMS: 15000, // Close idle connections after 15 seconds (reduced from 30)
-      waitQueueTimeoutMS: 10000, // Timeout after 10 seconds if a thread has been waiting for a connection
+      // waitQueueTimeoutMS: 10000, // Timeout after 10 seconds if a thread has been waiting for a connection
       socketTimeoutMS: 30000, // Close sockets after 30 seconds of inactivity (reduced from 45)
       connectTimeoutMS: 20000 // Timeout connection attempts after 20 seconds (reduced from 30)
     });
