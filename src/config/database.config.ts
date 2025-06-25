@@ -19,7 +19,7 @@ export class DatabaseService {
 
     
     const client = await MongoClient.connect(mongoUri, {
-      maxPoolSize:30,
+      maxPoolSize:15,
       minPoolSize:5
     });
     this.db = client.db(dbName);
