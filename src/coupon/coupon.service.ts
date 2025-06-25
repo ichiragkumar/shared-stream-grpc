@@ -59,7 +59,7 @@ export class CouponService {
   constructor(private readonly logger: LoggerService) {}
 
   async onModuleInit() {
-    this.db = await DatabaseService.connect();
+    this.db = DatabaseService.getDb();
     this.logger.log('Database connected successfully.');
   }
 
