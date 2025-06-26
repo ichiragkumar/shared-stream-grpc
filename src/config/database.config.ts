@@ -17,17 +17,18 @@ export class DatabaseService {
       throw new Error('Missing MongoDB URI or Database Name in .env');
     }
 
-    // Configure MongoDB connection pool settings - critical for fixing connection leaks
+  // Configure MongoDB connection pool settings - critical for fixing connection leaks
     const options: MongoClientOptions = {
-      maxPoolSize: 20, // Reduced pool size to prevent exhaustion
-      minPoolSize: 3,   // Minimal connections needed
-      maxIdleTimeMS: 30000, // Close idle connections much faster (30 seconds)
-      connectTimeoutMS: 10000, // Shorter connection timeout
-      socketTimeoutMS: 20000, // Shorter socket timeout
-      // waitQueueTimeoutMS: 5000, // Shorter wait queue timeout
-      serverSelectionTimeoutMS: 10000, // Faster server selection timeout
-      heartbeatFrequencyMS: 10000, // More frequent server checks
+      maxPoolSize: 50, // Hard limit on pool size to prevent unbounded growth
+      minPoolSize: 5,  // Keep a few connections ready
+      maxIdleTimeMS: 15000, // Close idle connections very quickly (15 seconds)
+      connectTimeoutMS: 20000, // Reasonable connection timeout
+      socketTimeoutMS: 30000, // Increased socket timeout to handle slow networks
+      serverSelectionTimeoutMS: 20000, // Reasonable server selection timeout
+      heartbeatFrequencyMS: 10000, // Regular server checks
       compressors: 'zlib', // Use compression to reduce network load
+      // Use existing connections more efficiently
+      maxConnecting: 10, // Limit concurrent connection attempts
     };
     
     try {

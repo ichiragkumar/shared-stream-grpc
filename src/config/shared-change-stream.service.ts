@@ -162,30 +162,67 @@ export class SharedChangeStreamService implements OnModuleInit, OnModuleDestroy 
         // Close the old stream if it's still open
         if (entry) {
           entry.stream.close();
+          this.logger.log(`Closed old stream for ${collectionName} before recreation`);
         }
       } catch (error) {
         this.logger.error(`Error closing change stream for ${collectionName}: ${error.message}`);
       }
       
-      // Create a new stream
+      // Check reference count before recreating
+      if (entry && entry.refCount <= 0) {
+        this.logger.log(`Not recreating stream for ${collectionName} as refCount is ${entry.refCount}`);
+        if (entry.subject) {
+          entry.subject.complete();
+        }
+        this.changeStreams.delete(collectionName);
+        return;
+      }
+      
+      // Create a new stream with timeout options
       const collection = this.db.collection(collectionName);
-      const stream = collection.watch([], { fullDocument: 'updateLookup' });
+      const stream = collection.watch([], { 
+        fullDocument: 'updateLookup',
+        maxAwaitTimeMS: 30000 // 30 seconds timeout for cursor
+      });
       
       // Forward all events from the new stream to the existing subject
       stream.on('change', (change) => {
-        if (entry) {
+        if (entry && !entry.subject.closed) {
           entry.subject.next(change);
         }
       });
       
-      // Handle errors
-      stream.on('error', (error) => {
+      // Handle errors with exponential backoff
+      let retryCount = 0;
+      stream.on('error', (error: any) => {
         this.logger.error(`Change stream error for collection ${collectionName}: ${error.message}`);
         
-        // Clean up and recreate the stream after a short delay
+        // Don't retry if the error indicates the collection was dropped or renamed
+        if (error.code === 40324 || error.code === 40615) {
+          this.logger.warn(`Not retrying stream for ${collectionName} due to collection change`);
+          if (entry && entry.subject && !entry.subject.closed) {
+            entry.subject.error(error);
+          }
+          this.changeStreams.delete(collectionName);
+          return;
+        }
+        
+        // Clean up and recreate the stream after a delay with exponential backoff
+        const delay = Math.min(5000 * Math.pow(1.5, retryCount), 60000); // Max 1 minute
+        retryCount++;
+        
+        this.logger.log(`Will retry stream for ${collectionName} in ${delay}ms (attempt ${retryCount})`);
+        
         setTimeout(() => {
-          this.recreateStream(collectionName);
-        }, 5000);
+          if (this.changeStreams.has(collectionName)) {
+            this.recreateStream(collectionName);
+          }
+        }, delay);
+      });
+      
+      // Add a close handler to ensure proper cleanup
+      stream.on('close', () => {
+        this.logger.log(`Stream for ${collectionName} was closed`);
       });
       
       // Update the stream in the map
