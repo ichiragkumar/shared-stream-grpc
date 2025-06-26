@@ -107,7 +107,7 @@ export class CouponService {
 
   streamActiveCouponsStreamService(data: User): Observable<ActiveCouponStreamResponse> {
     this.logger.log('streamActiveCouponsStreamService called', { user: data });
-    return streamActiveCouponsStream(this.db, data, this.logger);
+    return streamActiveCouponsStream(this.db, data, this.logger, this.connectionManager, this.sharedChangeStream);
   }
 
   streamWalletService(data: User): Observable<WalletBalanceResponse > {
